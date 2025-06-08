@@ -84,26 +84,43 @@ export class ChatController {
     res: Response<ApiResponse<any>>
   ): Promise<void> => {
     try {
-      const availableModels = this.completionsManager.getSupportedModels();
       const allModels = getAllModels();
+      const availableProviders =
+        this.completionsManager.getAvailableProviders();
 
-      const modelDetails = allModels
-        .filter((model) => availableModels.includes(model.name))
-        .map((model) => ({
-          name: model.name,
-          displayName: model.displayName,
-          provider: model.provider,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          supportsStreaming: model.supportsStreaming,
-        }));
+      // Filter models to only include those whose providers are available
+      const availableModels = allModels.filter((model) =>
+        availableProviders.includes(model.provider)
+      );
+
+      // Get all registry keys (including aliases) for available providers
+      const { MODEL_REGISTRY } = require("../config/modelRegistry");
+      const allRegistryKeys = Object.keys(MODEL_REGISTRY).filter((key) => {
+        const modelInfo = MODEL_REGISTRY[key];
+        return availableProviders.includes(modelInfo.provider);
+      });
+
+      // Deduplicate model details by actual model name
+      const uniqueModelDetails = new Map();
+      availableModels.forEach((model) => {
+        if (!uniqueModelDetails.has(model.name)) {
+          uniqueModelDetails.set(model.name, {
+            name: model.name,
+            displayName: model.displayName,
+            provider: model.provider,
+            maxTokens: model.maxTokens,
+            contextWindow: model.contextWindow,
+            supportsStreaming: model.supportsStreaming,
+          });
+        }
+      });
 
       const response: ApiResponse<any> = {
         success: true,
         data: {
-          models: availableModels,
-          modelDetails,
-          availableProviders: this.completionsManager.getAvailableProviders(),
+          models: allRegistryKeys,
+          modelDetails: Array.from(uniqueModelDetails.values()),
+          availableProviders,
         },
       };
       res.json(response);

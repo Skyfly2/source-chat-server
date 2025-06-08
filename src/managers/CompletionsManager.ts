@@ -1,4 +1,8 @@
-import { DEFAULT_MODEL, isModelSupported } from "../config/modelRegistry";
+import {
+  DEFAULT_MODEL,
+  getModelInfo,
+  isModelSupported,
+} from "../config/modelRegistry";
 import {
   DEFAULT_SYSTEM_PROMPT,
   SYSTEM_PROMPTS,
@@ -42,7 +46,13 @@ export class CompletionsManager {
         )}`
       );
     }
-    return model;
+
+    const modelInfo = getModelInfo(model);
+    if (!modelInfo) {
+      throw new Error(`Model info not found for: ${model}`);
+    }
+
+    return modelInfo.name;
   }
 
   public async createStreamingCompletion(

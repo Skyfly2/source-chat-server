@@ -130,13 +130,115 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   },
 
   // Google Gemini Models
+
+  // Gemini 2.5 Series
+  "gemini-2.5-pro-preview-06-05": {
+    name: "gemini-2.5-pro-preview-06-05",
+    provider: "google",
+    displayName: "Gemini 2.5 Pro Preview",
+    maxTokens: 65536,
+    supportsStreaming: true,
+    contextWindow: 1048576, // 1M tokens
+  },
+  "gemini-2.5-pro": {
+    name: "gemini-2.5-pro-preview-06-05",
+    provider: "google",
+    displayName: "Gemini 2.5 Pro",
+    maxTokens: 65536,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.5-flash-preview-05-20": {
+    name: "gemini-2.5-flash-preview-05-20",
+    provider: "google",
+    displayName: "Gemini 2.5 Flash Preview",
+    maxTokens: 65536,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.5-flash": {
+    name: "gemini-2.5-flash-preview-05-20",
+    provider: "google",
+    displayName: "Gemini 2.5 Flash",
+    maxTokens: 65536,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+
+  // Gemini 2.0 Series
+  "gemini-2.0-flash": {
+    name: "gemini-2.0-flash",
+    provider: "google",
+    displayName: "Gemini 2.0 Flash",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.0-flash-001": {
+    name: "gemini-2.0-flash-001",
+    provider: "google",
+    displayName: "Gemini 2.0 Flash Stable",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.0-flash-exp": {
+    name: "gemini-2.0-flash-exp",
+    provider: "google",
+    displayName: "Gemini 2.0 Flash Experimental",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.0-flash-lite": {
+    name: "gemini-2.0-flash-lite",
+    provider: "google",
+    displayName: "Gemini 2.0 Flash-Lite",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-2.0-flash-lite-001": {
+    name: "gemini-2.0-flash-lite-001",
+    provider: "google",
+    displayName: "Gemini 2.0 Flash-Lite Stable",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+
+  // Gemini 1.5 Series
   "gemini-1.5-pro": {
     name: "gemini-1.5-pro",
     provider: "google",
     displayName: "Gemini 1.5 Pro",
     maxTokens: 8192,
     supportsStreaming: true,
-    contextWindow: 2000000,
+    contextWindow: 2097152, // 2M tokens
+  },
+  "gemini-1.5-pro-latest": {
+    name: "gemini-1.5-pro-latest",
+    provider: "google",
+    displayName: "Gemini 1.5 Pro Latest",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 2097152,
+  },
+  "gemini-1.5-pro-001": {
+    name: "gemini-1.5-pro-001",
+    provider: "google",
+    displayName: "Gemini 1.5 Pro Stable",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 2097152,
+  },
+  "gemini-1.5-pro-002": {
+    name: "gemini-1.5-pro-002",
+    provider: "google",
+    displayName: "Gemini 1.5 Pro v2",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 2097152,
   },
   "gemini-1.5-flash": {
     name: "gemini-1.5-flash",
@@ -144,12 +246,62 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     displayName: "Gemini 1.5 Flash",
     maxTokens: 8192,
     supportsStreaming: true,
-    contextWindow: 1000000,
+    contextWindow: 1048576,
   },
+  "gemini-1.5-flash-latest": {
+    name: "gemini-1.5-flash-latest",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash Latest",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-1.5-flash-001": {
+    name: "gemini-1.5-flash-001",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash Stable",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-1.5-flash-002": {
+    name: "gemini-1.5-flash-002",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash v2",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-1.5-flash-8b": {
+    name: "gemini-1.5-flash-8b",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash-8B",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-1.5-flash-8b-latest": {
+    name: "gemini-1.5-flash-8b-latest",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash-8B Latest",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+  "gemini-1.5-flash-8b-001": {
+    name: "gemini-1.5-flash-8b-001",
+    provider: "google",
+    displayName: "Gemini 1.5 Flash-8B Stable",
+    maxTokens: 8192,
+    supportsStreaming: true,
+    contextWindow: 1048576,
+  },
+
+  // Legacy Gemini Models
   "gemini-pro": {
     name: "gemini-pro",
     provider: "google",
-    displayName: "Gemini Pro",
+    displayName: "Gemini Pro (Legacy)",
     maxTokens: 2048,
     supportsStreaming: true,
     contextWindow: 32768,
@@ -208,7 +360,7 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   },
 } as const;
 
-export const DEFAULT_MODEL = "gpt-4o-mini";
+export const DEFAULT_MODEL = "gemini-2.5-pro";
 
 export const getModelInfo = (modelName: string): ModelInfo | undefined => {
   return MODEL_REGISTRY[modelName];
