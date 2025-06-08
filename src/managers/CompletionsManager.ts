@@ -1,31 +1,19 @@
+import { DEFAULT_MODEL, isModelSupported } from "../config/modelRegistry";
 import {
-  DEFAULT_MODEL,
   DEFAULT_SYSTEM_PROMPT,
-  SUPPORTED_MODELS,
-  SupportedModel,
   SYSTEM_PROMPTS,
   SystemPromptKey,
 } from "../config/systemPrompts";
-import { ChatMessage } from "../types";
-import { getOpenAIClient } from "../utils/openaiClient";
+import { ChatMessage, CompletionOptions, StreamChunk } from "../types";
+import { getProviderRegistry } from "../utils/ProviderRegistry";
 
 export class CompletionsManager {
-  private validateModel(model: string): SupportedModel {
-    if (!SUPPORTED_MODELS.includes(model as SupportedModel)) {
-      throw new Error(
-        `Unsupported model: ${model}. Supported models: ${SUPPORTED_MODELS.join(
-          ", "
-        )}`
-      );
-    }
-    return model as SupportedModel;
-  }
+  private providerRegistry = getProviderRegistry();
 
   private getSystemPrompt(promptKey?: string): string {
     if (promptKey && promptKey in SYSTEM_PROMPTS) {
       return SYSTEM_PROMPTS[promptKey as SystemPromptKey];
     }
-
     return DEFAULT_SYSTEM_PROMPT;
   }
 
@@ -42,8 +30,19 @@ export class CompletionsManager {
     }
 
     messages.push({ role: "user", content: userMessage });
-
     return messages;
+  }
+
+  private validateModel(model: string): string {
+    if (!isModelSupported(model)) {
+      const availableModels = this.providerRegistry.getAllAvailableModels();
+      throw new Error(
+        `Unsupported model: ${model}. Available models: ${availableModels.join(
+          ", "
+        )}`
+      );
+    }
+    return model;
   }
 
   public async createStreamingCompletion(
@@ -55,7 +54,7 @@ export class CompletionsManager {
       maxTokens?: number;
       temperature?: number;
     } = {}
-  ): Promise<AsyncIterable<any>> {
+  ): Promise<AsyncGenerator<StreamChunk>> {
     const {
       model = DEFAULT_MODEL,
       context = [],
@@ -72,27 +71,71 @@ export class CompletionsManager {
       context
     );
 
-    const openai = getOpenAIClient();
+    const provider = this.providerRegistry.getProviderForModel(validatedModel);
 
-    const completion = await openai.chat.completions.create({
+    const completionOptions: CompletionOptions = {
       model: validatedModel,
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      max_tokens: maxTokens,
-      temperature: temperature,
+      messages,
+      maxTokens,
+      temperature,
       stream: true,
-    });
+    };
 
-    return completion;
+    return provider.createStreamingCompletion(completionOptions);
   }
 
-  public getSupportedModels(): SupportedModel[] {
-    return [...SUPPORTED_MODELS];
+  public async createCompletion(
+    userMessage: string,
+    options: {
+      model?: string;
+      context?: ChatMessage[];
+      promptKey?: string;
+      maxTokens?: number;
+      temperature?: number;
+    } = {}
+  ) {
+    const {
+      model = DEFAULT_MODEL,
+      context = [],
+      promptKey,
+      maxTokens = 1000,
+      temperature = 0.7,
+    } = options;
+
+    const validatedModel = this.validateModel(model);
+    const systemPrompt = this.getSystemPrompt(promptKey);
+    const messages = this.buildMessageHistory(
+      userMessage,
+      systemPrompt,
+      context
+    );
+
+    const provider = this.providerRegistry.getProviderForModel(validatedModel);
+
+    const completionOptions: CompletionOptions = {
+      model: validatedModel,
+      messages,
+      maxTokens,
+      temperature,
+      stream: false,
+    };
+
+    return provider.createCompletion(completionOptions);
+  }
+
+  public getSupportedModels(): string[] {
+    return this.providerRegistry.getAllAvailableModels();
   }
 
   public getSystemPrompts(): Record<string, string> {
     return { ...SYSTEM_PROMPTS };
+  }
+
+  public isModelAvailable(model: string): boolean {
+    return this.providerRegistry.isModelSupported(model);
+  }
+
+  public getAvailableProviders() {
+    return this.providerRegistry.getAvailableProviders();
   }
 }
