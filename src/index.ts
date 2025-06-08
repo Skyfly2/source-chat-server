@@ -1,12 +1,18 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import {
+  getEnvironmentConfig,
+  validateEnvironment,
+} from "./config/environment";
 import routes from "./routes";
 
 dotenv.config();
+validateEnvironment();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const config = getEnvironmentConfig();
+const PORT = config.port;
 
 app.use(cors());
 app.use(express.json());
@@ -16,5 +22,5 @@ app.use("/api", routes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Environment: ${config.nodeEnv}`);
 });
