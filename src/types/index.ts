@@ -36,6 +36,64 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// AI Provider Types
+export interface CompletionOptions {
+  model: string;
+  messages: ChatMessage[];
+  maxTokens?: number;
+  temperature?: number;
+  stream?: boolean;
+}
+
+export interface StreamChunk {
+  content: string;
+  done: boolean;
+}
+
+export interface CompletionResponse {
+  content: string;
+  model: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+}
+
+export abstract class AIProvider {
+  abstract name: string;
+  abstract getSupportedModels(): string[];
+  abstract createCompletion(
+    options: CompletionOptions
+  ): Promise<CompletionResponse>;
+  abstract createStreamingCompletion(
+    options: CompletionOptions
+  ): AsyncGenerator<StreamChunk>;
+  abstract isModelSupported(model: string): boolean;
+}
+
+export interface ProviderConfig {
+  apiKey?: string;
+  baseURL?: string;
+  [key: string]: any;
+}
+
+export type AIProviderType =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "xai"
+  | "deepseek";
+
+export interface ModelInfo {
+  name: string;
+  provider: AIProviderType;
+  displayName: string;
+  maxTokens: number;
+  supportsStreaming: boolean;
+  contextWindow: number;
+}
+
 // Request Parameter Types
 export interface ChatStreamParams {}
 
