@@ -1,6 +1,16 @@
 import { Request, Response } from "express";
 import { CompletionsManager } from "../managers/CompletionsManager";
-import { ApiResponse, ChatRequest } from "../types";
+import {
+  ApiResponse,
+  ChatRequest,
+  ChatStreamHandler,
+  GetModelsHandler,
+  GetPromptsHandler,
+} from "../types";
+import {
+  createValidationError,
+  validateChatRequest,
+} from "../utils/validationUtils";
 
 export class ChatController {
   private completionsManager: CompletionsManager;
@@ -9,21 +19,20 @@ export class ChatController {
     this.completionsManager = new CompletionsManager();
   }
 
-  async streamChat(
-    req: Request<{}, {}, ChatRequest>,
-    res: Response
-  ): Promise<void> {
+  streamChat: ChatStreamHandler = async (
+    req: Request<{}, any, ChatRequest, {}>,
+    res: Response<any>
+  ): Promise<void> => {
     try {
-      const { message, model, context, promptKey } = req.body;
-
-      if (!message || typeof message !== "string") {
-        const errorResponse: ApiResponse<never> = {
-          success: false,
-          error: "Message is required and must be a string",
-        };
+      if (!validateChatRequest(req.body)) {
+        const errorResponse: ApiResponse<never> = createValidationError(
+          "Invalid request body. Message is required and must be a non-empty string."
+        );
         res.status(400).json(errorResponse);
         return;
       }
+
+      const { message, model, context, promptKey } = req.body;
 
       res.setHeader("Content-Type", "text/plain");
       res.setHeader("Transfer-Encoding", "chunked");
@@ -65,9 +74,12 @@ export class ChatController {
         res.end();
       }
     }
-  }
+  };
 
-  async getModels(__req: Request, res: Response): Promise<void> {
+  getModels: GetModelsHandler = async (
+    __req: Request<{}, ApiResponse<string[]>, {}, {}>,
+    res: Response<ApiResponse<string[]>>
+  ): Promise<void> => {
     try {
       const models = this.completionsManager.getSupportedModels();
       const response: ApiResponse<string[]> = {
@@ -82,9 +94,12 @@ export class ChatController {
       };
       res.status(500).json(errorResponse);
     }
-  }
+  };
 
-  async getSystemPrompts(__req: Request, res: Response): Promise<void> {
+  getSystemPrompts: GetPromptsHandler = async (
+    __req: Request<{}, ApiResponse<Record<string, string>>, {}, {}>,
+    res: Response<ApiResponse<Record<string, string>>>
+  ): Promise<void> => {
     try {
       const prompts = this.completionsManager.getSystemPrompts();
       const response: ApiResponse<Record<string, string>> = {
@@ -102,5 +117,5 @@ export class ChatController {
       };
       res.status(500).json(errorResponse);
     }
-  }
+  };
 }
