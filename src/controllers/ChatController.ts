@@ -1,14 +1,20 @@
 import { Request, Response } from "express";
+import { CompletionsManager } from "../managers/CompletionsManager";
 import { ApiResponse, ChatRequest } from "../types";
-import { getOpenAIClient } from "../utils/openaiClient";
 
 export class ChatController {
+  private completionsManager: CompletionsManager;
+
+  constructor() {
+    this.completionsManager = new CompletionsManager();
+  }
+
   async streamChat(
     req: Request<{}, {}, ChatRequest>,
     res: Response
   ): Promise<void> {
     try {
-      const { message } = req.body;
+      const { message, model, context, promptKey } = req.body;
 
       if (!message || typeof message !== "string") {
         const errorResponse: ApiResponse<never> = {
@@ -19,18 +25,21 @@ export class ChatController {
         return;
       }
 
-      const openai = getOpenAIClient();
-
       res.setHeader("Content-Type", "text/plain");
       res.setHeader("Transfer-Encoding", "chunked");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }],
-        stream: true,
-      });
+      const stream = await this.completionsManager.createStreamingCompletion(
+        message,
+        {
+          model,
+          context,
+          promptKey,
+          maxTokens: 1000,
+          temperature: 0.7,
+        }
+      );
 
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
@@ -55,6 +64,43 @@ export class ChatController {
       } else {
         res.end();
       }
+    }
+  }
+
+  async getModels(__req: Request, res: Response): Promise<void> {
+    try {
+      const models = this.completionsManager.getSupportedModels();
+      const response: ApiResponse<string[]> = {
+        success: true,
+        data: models,
+      };
+      res.json(response);
+    } catch (error) {
+      const errorResponse: ApiResponse<never> = {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to get models",
+      };
+      res.status(500).json(errorResponse);
+    }
+  }
+
+  async getSystemPrompts(__req: Request, res: Response): Promise<void> {
+    try {
+      const prompts = this.completionsManager.getSystemPrompts();
+      const response: ApiResponse<Record<string, string>> = {
+        success: true,
+        data: prompts,
+      };
+      res.json(response);
+    } catch (error) {
+      const errorResponse: ApiResponse<never> = {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get system prompts",
+      };
+      res.status(500).json(errorResponse);
     }
   }
 }
