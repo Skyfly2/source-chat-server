@@ -1,0 +1,203 @@
+# T3 Clone Server - Cursor Rules
+
+## Project Structure & Architecture
+
+This is a TypeScript Express server following a clean, layered architecture. Always maintain this structure:
+
+```
+src/
+├── index.ts              # Application entry point
+├── config/               # Configuration files (database, environment, etc.)
+├── types/                # TypeScript type definitions and interfaces
+├── routes/               # Express route definitions
+├── controllers/          # Request/response handling logic
+├── managers/             # Business logic layer
+├── data/                 # Data access layer (repositories, models)
+└── utils/                # Utility functions and helpers
+```
+
+## Code Organization Principles
+
+### 1. Separation of Concerns
+
+- **Routes**: Only define endpoints and delegate to controllers
+- **Controllers**: Handle HTTP requests/responses, validation, and call managers
+- **Managers**: Contain business logic and orchestrate data operations
+- **Data Layer**: Handle database operations, external APIs, and data persistence
+- **Utils**: Reusable helper functions that can be used across layers
+
+### 2. Controller Pattern
+
+- Controllers should be classes with async methods
+- Always use proper error handling with try/catch blocks
+- Return consistent ApiResponse format from types
+- Delegate business logic to managers, never implement it in controllers
+- Keep controllers thin - they should only handle HTTP concerns
+
+### 3. Manager Pattern
+
+- Managers contain the core business logic
+- Should be called by controllers and can call other managers
+- Handle data validation and business rule enforcement
+- Coordinate between multiple data sources if needed
+- Should return domain objects, not HTTP responses
+
+### 4. Data Layer Pattern
+
+- Abstract all external data sources (databases, APIs, files)
+- Use repository pattern for database operations
+- Keep data access methods focused and single-purpose
+- Handle connection management and error translation
+
+## Type Safety & Consistency
+
+### 1. Always Use Existing Types
+
+- Check `src/types/` before creating new interfaces
+- Extend existing types rather than duplicating
+- Import types explicitly: `import { User, ApiResponse } from "../types"`
+
+### 2. API Response Format
+
+Always use the consistent ApiResponse format:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+```
+
+### 3. Type Definitions
+
+- Define interfaces in `src/types/`
+- Use proper TypeScript generics where applicable
+- Avoid `any` - use proper typing or `unknown`
+- Export types from a central index file when possible
+
+## Utility Functions
+
+### 1. Creating Utils
+
+- Place reusable functions in `src/utils/`
+- Group related utilities in files (e.g., `dateUtils.ts`, `validationUtils.ts`)
+- Always export as named exports, not default exports
+- Write pure functions when possible (no side effects)
+
+### 2. Using Existing Utils
+
+- Always check existing utils before writing new functionality
+- Import utilities explicitly: `import { formatDate, validateEmail } from "../utils"`
+- Reuse validation, formatting, and transformation logic
+
+## Error Handling
+
+### 1. Consistent Error Responses
+
+- Always wrap controller methods in try/catch
+- Return proper HTTP status codes
+- Use descriptive error messages
+- Never expose internal errors to clients
+
+### 2. Error Format
+
+```typescript
+const errorResponse: ApiResponse<never> = {
+  success: false,
+  error: error instanceof Error ? error.message : "Unknown error occurred",
+};
+```
+
+## Import Organization
+
+### 1. Import Order
+
+1. Node.js built-ins
+2. Third-party packages
+3. Internal modules (controllers, managers, types, utils)
+
+### 2. Import Style
+
+- Use named imports: `import { Router } from "express"`
+- Use relative paths for internal modules: `import { UserManager } from "../managers/UserManager"`
+- Group imports by type with line breaks
+
+## Naming Conventions
+
+### 1. Files & Directories
+
+- PascalCase for classes: `UserController.ts`, `DatabaseManager.ts`
+- camelCase for utilities: `dateUtils.ts`, `validationHelpers.ts`
+- Plural for directories: `controllers/`, `managers/`, `utils/`
+
+### 2. Code Elements
+
+- PascalCase for classes and interfaces
+- camelCase for variables, functions, and methods
+- UPPER_CASE for constants
+- Descriptive names that explain purpose
+
+## Database & External APIs
+
+### 1. Abstraction
+
+- Never call databases directly from controllers
+- Use manager layer for business logic involving data
+- Create repository classes for data access
+- Handle connection pooling and transactions in data layer
+
+### 2. API Calls
+
+- Abstract external API calls into dedicated service classes
+- Handle rate limiting, retries, and error mapping
+- Use proper typing for external API responses
+- Cache responses when appropriate
+
+## Best Practices
+
+### 1. Code Quality
+
+- Write self-documenting code - avoid unnecessary comments
+- Keep functions small and focused (single responsibility)
+- Use TypeScript strict mode features
+- Avoid deep nesting - use early returns
+
+### 2. Dependencies
+
+- Keep dependencies minimal and up-to-date
+- Use exact versions in package.json for production dependencies
+- Separate dev dependencies from runtime dependencies
+
+### 3. Configuration
+
+- Use environment variables for configuration
+- Store config in `src/config/` directory
+- Validate configuration on startup
+- Never commit secrets or sensitive data
+
+### 4. Testing Considerations
+
+- Write testable code by avoiding side effects
+- Use dependency injection where it makes sense
+- Keep external dependencies mockable
+- Structure code to enable unit testing at each layer
+
+## Code Reuse Guidelines
+
+### 1. Before Writing New Code
+
+- Check if similar functionality exists in managers/utils
+- Look for existing types that can be extended or reused
+- Review existing patterns for consistency
+
+### 2. When Creating New Features
+
+- Follow the established layered architecture
+- Create reusable components in the appropriate layer
+- Add proper TypeScript interfaces
+- Consider how the code can be tested and maintained
+
+Remember: Clean code is not just about following patterns, but about making the codebase maintainable, testable, and easy to understand for future developers.
+When new style concerns are addressed, make sure to update the .cursorrules file to address those changes
