@@ -4,6 +4,6 @@ import { ChatController } from "../controllers/ChatController";
 const router = Router();
 const chatController = new ChatController();
 
-router.get("/", chatController.getData);
+router.post("/stream", chatController.streamChat.bind(chatController));
 
 export default router;

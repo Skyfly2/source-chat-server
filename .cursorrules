@@ -92,6 +92,13 @@ interface ApiResponse<T> {
 - Import utilities explicitly: `import { formatDate, validateEmail } from "../utils"`
 - Reuse validation, formatting, and transformation logic
 
+### 3. Singleton Services
+
+- Use singleton pattern for shared external service clients (e.g., OpenAI, database connections)
+- Place singleton services in `src/utils/` with descriptive names
+- Provide both getter functions and reset functions for testing
+- Handle initialization and error cases within the singleton
+
 ## Error Handling
 
 ### 1. Consistent Error Responses

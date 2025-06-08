@@ -1,24 +1,60 @@
-import axios from "axios";
 import { Request, Response } from "express";
-import { ApiResponse } from "../types";
+import { ApiResponse, ChatRequest } from "../types";
+import { getOpenAIClient } from "../utils/openaiClient";
 
 export class ChatController {
-  async getData(req: Request, res: Response): Promise<void> {
+  async streamChat(
+    req: Request<{}, {}, ChatRequest>,
+    res: Response
+  ): Promise<void> {
     try {
-      const response = await axios.get(
-        "https://jsonplaceholder.typicode.com/posts"
-      );
-      const apiResponse: ApiResponse<any[]> = {
-        success: true,
-        data: response.data,
-      };
-      res.json(apiResponse);
+      const { message } = req.body;
+
+      if (!message || typeof message !== "string") {
+        const errorResponse: ApiResponse<never> = {
+          success: false,
+          error: "Message is required and must be a string",
+        };
+        res.status(400).json(errorResponse);
+        return;
+      }
+
+      const openai = getOpenAIClient();
+
+      res.setHeader("Content-Type", "text/plain");
+      res.setHeader("Transfer-Encoding", "chunked");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const stream = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: message }],
+        stream: true,
+      });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) {
+          res.write(content);
+        }
+      }
+
+      res.end();
     } catch (error) {
-      const apiResponse: ApiResponse<never> = {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to fetch data",
-      };
-      res.status(500).json(apiResponse);
+      console.error("Streaming error:", error);
+
+      if (!res.headersSent) {
+        const errorResponse: ApiResponse<never> = {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to stream chat response",
+        };
+        res.status(500).json(errorResponse);
+      } else {
+        res.end();
+      }
     }
   }
 }

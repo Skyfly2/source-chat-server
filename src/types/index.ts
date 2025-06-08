@@ -8,6 +8,10 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface ChatRequest {
+  message: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

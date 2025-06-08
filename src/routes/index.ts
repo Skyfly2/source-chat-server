@@ -3,7 +3,7 @@ import chatRoutes from "./chatRoutes";
 
 const router = Router();
 
-router.use("/chats", chatRoutes);
+router.use("/chat", chatRoutes);
 
 router.get("/health", (__req, res) => {
   res.json({
