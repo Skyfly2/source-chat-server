@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getAllModels } from "../config/modelRegistry";
 import { CompletionsManager } from "../managers/CompletionsManager";
 import {
   ApiResponse,
@@ -51,9 +52,11 @@ export class ChatController {
       );
 
       for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          res.write(content);
+        if (chunk.content) {
+          res.write(chunk.content);
+        }
+        if (chunk.done) {
+          break;
         }
       }
 
@@ -77,14 +80,31 @@ export class ChatController {
   };
 
   getModels: GetModelsHandler = async (
-    __req: Request<{}, ApiResponse<string[]>, {}, {}>,
-    res: Response<ApiResponse<string[]>>
+    __req: Request<{}, ApiResponse<any>, {}, {}>,
+    res: Response<ApiResponse<any>>
   ): Promise<void> => {
     try {
-      const models = this.completionsManager.getSupportedModels();
-      const response: ApiResponse<string[]> = {
+      const availableModels = this.completionsManager.getSupportedModels();
+      const allModels = getAllModels();
+
+      const modelDetails = allModels
+        .filter((model) => availableModels.includes(model.name))
+        .map((model) => ({
+          name: model.name,
+          displayName: model.displayName,
+          provider: model.provider,
+          maxTokens: model.maxTokens,
+          contextWindow: model.contextWindow,
+          supportsStreaming: model.supportsStreaming,
+        }));
+
+      const response: ApiResponse<any> = {
         success: true,
-        data: models,
+        data: {
+          models: availableModels,
+          modelDetails,
+          availableProviders: this.completionsManager.getAvailableProviders(),
+        },
       };
       res.json(response);
     } catch (error) {
