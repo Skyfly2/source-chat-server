@@ -111,6 +111,7 @@ export class ChatController {
             maxTokens: model.maxTokens,
             contextWindow: model.contextWindow,
             supportsStreaming: model.supportsStreaming,
+            features: model.features,
           });
         }
       });
