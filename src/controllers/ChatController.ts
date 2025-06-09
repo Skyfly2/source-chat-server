@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
 import { getAllModels } from "../config/modelRegistry";
 import { CompletionsManager } from "../managers/CompletionsManager";
 import { ThreadsManager } from "../managers/ThreadsManager";
 import {
   ApiResponse,
+  ChatMessage,
   ChatRequest,
   ChatStreamHandler,
   GetModelsHandler,
@@ -36,7 +38,7 @@ export class ChatController {
         return;
       }
 
-      const { message, model, promptKey } = req.body;
+      const { message, model, promptKey, context: providedContext } = req.body;
       let { threadId } = req.body;
 
       let thread;
@@ -62,7 +64,21 @@ export class ChatController {
 
       await this.threadsManager.addMessageToThread(threadId, "user", message);
 
-      const context = await this.threadsManager.getThreadMessages(threadId);
+      // Use provided context from frontend instead of database call for better performance
+      let context: ChatMessage[];
+      if (providedContext && providedContext.length > 0) {
+        // Convert AIMessage[] from frontend to ChatMessage[] format expected by CompletionsManager
+        context = providedContext.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          threadId: new ObjectId(threadId),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+      } else {
+        // Fallback to database call if no context provided
+        context = await this.threadsManager.getThreadMessages(threadId);
+      }
 
       res.setHeader("Content-Type", "text/plain");
       res.setHeader("Transfer-Encoding", "chunked");
@@ -134,7 +150,7 @@ export class ChatController {
         return;
       }
 
-      const { message, model, promptKey } = req.body;
+      const { message, model, promptKey, context: providedContext } = req.body;
       let { threadId } = req.body;
 
       let thread;
@@ -160,7 +176,21 @@ export class ChatController {
 
       await this.threadsManager.addMessageToThread(threadId, "user", message);
 
-      const context = await this.threadsManager.getThreadMessages(threadId);
+      // Use provided context from frontend instead of database call for better performance
+      let context: ChatMessage[];
+      if (providedContext && providedContext.length > 0) {
+        // Convert AIMessage[] from frontend to ChatMessage[] format expected by CompletionsManager
+        context = providedContext.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          threadId: new ObjectId(threadId),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+      } else {
+        // Fallback to database call if no context provided
+        context = await this.threadsManager.getThreadMessages(threadId);
+      }
 
       const response = await this.completionsManager.createCompletion(message, {
         model: model || thread.model,
