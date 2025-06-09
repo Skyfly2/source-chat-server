@@ -14,7 +14,24 @@ const app = express();
 const config = getEnvironmentConfig();
 const PORT = config.port;
 
-app.use(cors());
+// CORS configuration - restrict origins in production
+const corsOptions = {
+  origin:
+    config.nodeEnv === "production"
+      ? [] // Replace with your actual domains
+      : [
+          "http://localhost:3000",
+          "http://localhost:5173",
+          "http://localhost:5174",
+          "http://localhost:5175",
+        ], // Development origins
+  credentials: true, // Allow cookies/auth headers
+  exposedHeaders: ["X-Thread-Id"], // Only expose necessary headers
+  allowedHeaders: ["Content-Type", "Authorization"], // Restrict allowed request headers
+  methods: ["GET", "POST", "PUT", "DELETE"], // Explicit method restrictions
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
