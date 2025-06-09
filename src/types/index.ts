@@ -85,6 +85,15 @@ export type AIProviderType =
   | "xai"
   | "deepseek";
 
+export interface ModelFeatures {
+  reasoning?: boolean;
+  internet?: boolean;
+  vision?: boolean;
+  attachments?: boolean;
+  codeExecution?: boolean;
+  multimodal?: boolean;
+}
+
 export interface ModelInfo {
   name: string;
   provider: AIProviderType;
@@ -92,6 +101,7 @@ export interface ModelInfo {
   maxTokens: number;
   supportsStreaming: boolean;
   contextWindow: number;
+  features?: ModelFeatures;
 }
 
 // Request Parameter Types

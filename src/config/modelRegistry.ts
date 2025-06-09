@@ -11,6 +11,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+      vision: true,
+      multimodal: true,
+    },
   },
   "o4-mini": {
     name: "o4-mini",
@@ -19,6 +24,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+      vision: true,
+      multimodal: true,
+    },
   },
   "o4-mini-high": {
     name: "o4-mini-high",
@@ -27,6 +37,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+      vision: true,
+      multimodal: true,
+    },
   },
   "o3-mini": {
     name: "o3-mini",
@@ -35,6 +50,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+      vision: true,
+      multimodal: true,
+    },
   },
   o1: {
     name: "o1",
@@ -43,6 +63,9 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+    },
   },
   "o1-pro": {
     name: "o1-pro",
@@ -51,6 +74,9 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 100000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      reasoning: true,
+    },
   },
   "o1-preview": {
     name: "o1-preview",
@@ -59,6 +85,9 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32768,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      reasoning: true,
+    },
   },
   "o1-mini": {
     name: "o1-mini",
@@ -67,6 +96,9 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 65536,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      reasoning: true,
+    },
   },
 
   // GPT-4.5 Series
@@ -77,6 +109,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4.5-preview": {
     name: "gpt-4.5-preview",
@@ -85,6 +122,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
 
   // GPT-4.1 Series
@@ -95,6 +137,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32768,
     supportsStreaming: true,
     contextWindow: 1047576, // 1M+ tokens
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4.1-mini": {
     name: "gpt-4.1-mini",
@@ -103,6 +150,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32768,
     supportsStreaming: true,
     contextWindow: 1047576,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4.1-nano": {
     name: "gpt-4.1-nano",
@@ -111,6 +163,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32768,
     supportsStreaming: true,
     contextWindow: 1047576,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
 
   // GPT-4o Series (Latest versions)
@@ -121,6 +178,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4o-2024-11-20": {
     name: "gpt-4o-2024-11-20",
@@ -129,6 +191,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4o-2024-08-06": {
     name: "gpt-4o-2024-08-06",
@@ -137,6 +204,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4o-2024-05-13": {
     name: "gpt-4o-2024-05-13",
@@ -145,6 +217,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4o-mini": {
     name: "gpt-4o-mini",
@@ -153,6 +230,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gpt-4o-mini-2024-07-18": {
     name: "gpt-4o-mini-2024-07-18",
@@ -161,6 +243,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
 
   // GPT-4 Series (Legacy)
@@ -288,6 +375,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   "claude-opus-4-0": {
     name: "claude-opus-4-20250514",
@@ -296,6 +389,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 32000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   "claude-sonnet-4-20250514": {
     name: "claude-sonnet-4-20250514",
@@ -304,6 +403,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 64000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   "claude-sonnet-4-0": {
     name: "claude-sonnet-4-20250514",
@@ -312,6 +417,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 64000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   // Claude 3.7 Models
   "claude-3-7-sonnet-20250219": {
@@ -321,6 +432,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 64000,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   // Claude 3.5 Models
   "claude-3-5-sonnet-20241022": {
@@ -330,6 +447,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   "claude-3-5-haiku-20241022": {
     name: "claude-3-5-haiku-20241022",
@@ -338,6 +461,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   // Claude 3 Models
   "claude-3-opus-20240229": {
@@ -347,6 +475,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "claude-3-sonnet-20240229": {
     name: "claude-3-sonnet-20240229",
@@ -355,6 +488,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "claude-3-haiku-20240307": {
     name: "claude-3-haiku-20240307",
@@ -363,6 +501,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 200000,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
 
   // Google Gemini Models
@@ -409,6 +552,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 1048576,
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+      codeExecution: true,
+    },
   },
   "gemini-2.0-flash-001": {
     name: "gemini-2.0-flash-001",
@@ -451,6 +600,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 2097152, // 2M tokens
+    features: {
+      vision: true,
+      multimodal: true,
+      attachments: true,
+    },
   },
   "gemini-1.5-pro-latest": {
     name: "gemini-1.5-pro-latest",
@@ -551,6 +705,10 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 131072,
+    features: {
+      internet: true,
+      reasoning: true,
+    },
   },
   "grok-3-mini": {
     name: "grok-3-mini",
@@ -559,6 +717,10 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 131072,
+    features: {
+      internet: true,
+      reasoning: true,
+    },
   },
   "grok-3-vision": {
     name: "grok-3-vision",
@@ -567,6 +729,12 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 8192,
     supportsStreaming: true,
     contextWindow: 131072,
+    features: {
+      internet: true,
+      reasoning: true,
+      vision: true,
+      multimodal: true,
+    },
   },
 
   // DeepSeek Models
@@ -577,6 +745,9 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 32000,
+    features: {
+      reasoning: true,
+    },
   },
   "deepseek-coder": {
     name: "deepseek-coder",
@@ -585,6 +756,10 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 16000,
+    features: {
+      reasoning: true,
+      codeExecution: true,
+    },
   },
 } as const;
 
