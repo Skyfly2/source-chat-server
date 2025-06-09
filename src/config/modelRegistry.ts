@@ -2,10 +2,146 @@ import { AIProviderType, ModelInfo } from "../types";
 
 export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   // OpenAI Models
+
+  // o-series models (Reasoning Models)
+  o3: {
+    name: "o3",
+    provider: "openai",
+    displayName: "o3",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  "o4-mini": {
+    name: "o4-mini",
+    provider: "openai",
+    displayName: "o4-mini",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  "o4-mini-high": {
+    name: "o4-mini-high",
+    provider: "openai",
+    displayName: "o4-mini-high",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  "o3-mini": {
+    name: "o3-mini",
+    provider: "openai",
+    displayName: "o3-mini",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  o1: {
+    name: "o1",
+    provider: "openai",
+    displayName: "o1",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  "o1-pro": {
+    name: "o1-pro",
+    provider: "openai",
+    displayName: "o1 Pro",
+    maxTokens: 100000,
+    supportsStreaming: true,
+    contextWindow: 200000,
+  },
+  "o1-preview": {
+    name: "o1-preview",
+    provider: "openai",
+    displayName: "o1 Preview",
+    maxTokens: 32768,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "o1-mini": {
+    name: "o1-mini",
+    provider: "openai",
+    displayName: "o1 Mini",
+    maxTokens: 65536,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+
+  // GPT-4.5 Series
+  "gpt-4.5": {
+    name: "gpt-4.5",
+    provider: "openai",
+    displayName: "GPT-4.5",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4.5-preview": {
+    name: "gpt-4.5-preview",
+    provider: "openai",
+    displayName: "GPT-4.5 Preview",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+
+  // GPT-4.1 Series
+  "gpt-4.1": {
+    name: "gpt-4.1",
+    provider: "openai",
+    displayName: "GPT-4.1",
+    maxTokens: 32768,
+    supportsStreaming: true,
+    contextWindow: 1047576, // 1M+ tokens
+  },
+  "gpt-4.1-mini": {
+    name: "gpt-4.1-mini",
+    provider: "openai",
+    displayName: "GPT-4.1 Mini",
+    maxTokens: 32768,
+    supportsStreaming: true,
+    contextWindow: 1047576,
+  },
+  "gpt-4.1-nano": {
+    name: "gpt-4.1-nano",
+    provider: "openai",
+    displayName: "GPT-4.1 Nano",
+    maxTokens: 32768,
+    supportsStreaming: true,
+    contextWindow: 1047576,
+  },
+
+  // GPT-4o Series (Latest versions)
   "gpt-4o": {
     name: "gpt-4o",
     provider: "openai",
     displayName: "GPT-4o",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4o-2024-11-20": {
+    name: "gpt-4o-2024-11-20",
+    provider: "openai",
+    displayName: "GPT-4o (Nov 2024)",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4o-2024-08-06": {
+    name: "gpt-4o-2024-08-06",
+    provider: "openai",
+    displayName: "GPT-4o (Aug 2024)",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4o-2024-05-13": {
+    name: "gpt-4o-2024-05-13",
+    provider: "openai",
+    displayName: "GPT-4o (May 2024)",
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 128000,
@@ -14,14 +150,40 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     name: "gpt-4o-mini",
     provider: "openai",
     displayName: "GPT-4o Mini",
-    maxTokens: 4096,
+    maxTokens: 16384,
     supportsStreaming: true,
     contextWindow: 128000,
   },
+  "gpt-4o-mini-2024-07-18": {
+    name: "gpt-4o-mini-2024-07-18",
+    provider: "openai",
+    displayName: "GPT-4o Mini (Jul 2024)",
+    maxTokens: 16384,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+
+  // GPT-4 Series (Legacy)
   "gpt-4-turbo": {
     name: "gpt-4-turbo",
     provider: "openai",
     displayName: "GPT-4 Turbo",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4-turbo-2024-04-09": {
+    name: "gpt-4-turbo-2024-04-09",
+    provider: "openai",
+    displayName: "GPT-4 Turbo with Vision",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 128000,
+  },
+  "gpt-4-turbo-preview": {
+    name: "gpt-4-turbo-preview",
+    provider: "openai",
+    displayName: "GPT-4 Turbo Preview",
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 128000,
@@ -34,6 +196,48 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     supportsStreaming: true,
     contextWindow: 8192,
   },
+  "gpt-4-0613": {
+    name: "gpt-4-0613",
+    provider: "openai",
+    displayName: "GPT-4 (Jun 2023)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 8192,
+  },
+  "gpt-4-0314": {
+    name: "gpt-4-0314",
+    provider: "openai",
+    displayName: "GPT-4 (Mar 2023)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 8192,
+  },
+  "gpt-4-32k": {
+    name: "gpt-4-32k",
+    provider: "openai",
+    displayName: "GPT-4 32K",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 32768,
+  },
+  "gpt-4-32k-0613": {
+    name: "gpt-4-32k-0613",
+    provider: "openai",
+    displayName: "GPT-4 32K (Jun 2023)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 32768,
+  },
+  "gpt-4-32k-0314": {
+    name: "gpt-4-32k-0314",
+    provider: "openai",
+    displayName: "GPT-4 32K (Mar 2023)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 32768,
+  },
+
+  // GPT-3.5 Series
   "gpt-3.5-turbo": {
     name: "gpt-3.5-turbo",
     provider: "openai",
@@ -41,6 +245,38 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
     maxTokens: 4096,
     supportsStreaming: true,
     contextWindow: 16385,
+  },
+  "gpt-3.5-turbo-0125": {
+    name: "gpt-3.5-turbo-0125",
+    provider: "openai",
+    displayName: "GPT-3.5 Turbo (Jan 2024)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 16385,
+  },
+  "gpt-3.5-turbo-1106": {
+    name: "gpt-3.5-turbo-1106",
+    provider: "openai",
+    displayName: "GPT-3.5 Turbo (Nov 2023)",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 16385,
+  },
+  "gpt-3.5-turbo-16k": {
+    name: "gpt-3.5-turbo-16k",
+    provider: "openai",
+    displayName: "GPT-3.5 Turbo 16K",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 16385,
+  },
+  "gpt-3.5-turbo-instruct": {
+    name: "gpt-3.5-turbo-instruct",
+    provider: "openai",
+    displayName: "GPT-3.5 Turbo Instruct",
+    maxTokens: 4096,
+    supportsStreaming: true,
+    contextWindow: 4097,
   },
 
   // Anthropic Claude Models
@@ -352,7 +588,7 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   },
 } as const;
 
-export const DEFAULT_MODEL = "gemini-2.5-pro";
+export const DEFAULT_MODEL = "gpt-4o";
 
 export const getModelInfo = (modelName: string): ModelInfo | undefined => {
   return MODEL_REGISTRY[modelName];
