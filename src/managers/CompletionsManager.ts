@@ -24,17 +24,48 @@ export class CompletionsManager {
   private buildMessageHistory(
     userMessage: string,
     systemPrompt: string,
-    context?: ChatMessage[]
+    context?: ChatMessage[],
+    modelName?: string
   ): ChatMessage[] {
-    const messages: ChatMessage[] = [{ role: "system", content: systemPrompt }];
+    const messages: ChatMessage[] = [];
+
+    // Check if this is a reasoning model that doesn't support system messages
+    const isReasoningModel = this.isReasoningModel(modelName);
+
+    if (!isReasoningModel) {
+      messages.push({ role: "system", content: systemPrompt });
+    }
 
     if (context && context.length > 0) {
       const filteredContext = context.filter((msg) => msg.role !== "system");
       messages.push(...filteredContext);
     }
 
-    messages.push({ role: "user", content: userMessage });
+    // For reasoning models, prepend system prompt to user message
+    const finalUserMessage = isReasoningModel
+      ? `${systemPrompt}\n\n${userMessage}`
+      : userMessage;
+
+    messages.push({ role: "user", content: finalUserMessage });
     return messages;
+  }
+
+  private isReasoningModel(modelName?: string): boolean {
+    if (!modelName) return false;
+
+    const modelInfo = getModelInfo(modelName);
+    if (!modelInfo) return false;
+
+    // Check if model has reasoning feature or is an o1/o3/o4 series model
+    const hasReasoningFeature = modelInfo.features?.reasoning === true;
+    const isOpenAIReasoningModel = /^(o1|o3|o4)(-|$)/.test(modelName);
+    const isDeepSeekReasoningModel =
+      modelName.includes("deepseek-r1") ||
+      modelName.includes("deepseek-reasoner");
+
+    return (
+      hasReasoningFeature || isOpenAIReasoningModel || isDeepSeekReasoningModel
+    );
   }
 
   private validateModel(model: string): string {
@@ -78,7 +109,8 @@ export class CompletionsManager {
     const messages = this.buildMessageHistory(
       userMessage,
       systemPrompt,
-      context
+      context,
+      validatedModel
     );
 
     const provider = this.providerRegistry.getProviderForModel(validatedModel);
@@ -117,7 +149,8 @@ export class CompletionsManager {
     const messages = this.buildMessageHistory(
       userMessage,
       systemPrompt,
-      context
+      context,
+      validatedModel
     );
 
     const provider = this.providerRegistry.getProviderForModel(validatedModel);

@@ -20,6 +20,10 @@ export class OpenAIProvider extends AIProvider {
     });
   }
 
+  private isReasoningModel(model: string): boolean {
+    return /^(o1|o3|o4)(-|$)/.test(model);
+  }
+
   getSupportedModels(): string[] {
     const models = getModelsByProvider("openai");
     console.log("OpenAI models from registry:", models);
@@ -33,16 +37,33 @@ export class OpenAIProvider extends AIProvider {
   async createCompletion(
     options: CompletionOptions
   ): Promise<CompletionResponse> {
-    const response = await this.client.chat.completions.create({
+    const isReasoning = this.isReasoningModel(options.model);
+    const requestParams: any = {
       model: options.model,
       messages: options.messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
-      max_tokens: options.maxTokens,
-      temperature: options.temperature,
       stream: false,
-    });
+    };
+
+    // Reasoning models don't support custom temperature
+    if (!isReasoning && options.temperature !== undefined) {
+      requestParams.temperature = options.temperature;
+    }
+
+    // Use max_completion_tokens for reasoning models, max_tokens for others
+    if (isReasoning) {
+      if (options.maxTokens) {
+        requestParams.max_completion_tokens = options.maxTokens;
+      }
+    } else {
+      if (options.maxTokens) {
+        requestParams.max_tokens = options.maxTokens;
+      }
+    }
+
+    const response = await this.client.chat.completions.create(requestParams);
 
     const choice = response.choices[0];
     if (!choice?.message?.content) {
@@ -63,16 +84,44 @@ export class OpenAIProvider extends AIProvider {
   async *createStreamingCompletion(
     options: CompletionOptions
   ): AsyncGenerator<StreamChunk> {
-    const stream = await this.client.chat.completions.create({
+    const isReasoning = this.isReasoningModel(options.model);
+    console.log(
+      `OpenAI: Model ${options.model}, isReasoning: ${isReasoning}, temperature: ${options.temperature}`
+    );
+
+    const requestParams: any = {
       model: options.model,
       messages: options.messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
-      max_tokens: options.maxTokens,
-      temperature: options.temperature,
       stream: true,
-    });
+    };
+
+    // Reasoning models don't support custom temperature
+    if (!isReasoning && options.temperature !== undefined) {
+      requestParams.temperature = options.temperature;
+    }
+
+    // Use max_completion_tokens for reasoning models, max_tokens for others
+    if (isReasoning) {
+      if (options.maxTokens) {
+        requestParams.max_completion_tokens = options.maxTokens;
+      }
+    } else {
+      if (options.maxTokens) {
+        requestParams.max_tokens = options.maxTokens;
+      }
+    }
+
+    console.log(
+      "OpenAI Request params:",
+      JSON.stringify(requestParams, null, 2)
+    );
+
+    const stream = (await this.client.chat.completions.create(
+      requestParams
+    )) as any;
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
