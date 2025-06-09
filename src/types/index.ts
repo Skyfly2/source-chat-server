@@ -92,6 +92,11 @@ export interface ModelFeatures {
   attachments?: boolean;
   codeExecution?: boolean;
   multimodal?: boolean;
+  stepByStep?: boolean;
+  coding?: boolean;
+  mathematics?: boolean;
+  functionCalling?: boolean;
+  lightweight?: boolean;
 }
 
 export interface ModelInfo {
