@@ -83,31 +83,60 @@ export class DeepSeekProvider extends AIProvider {
     };
   }
 
+  private isReasoningModel(model: string): boolean {
+    return model === "deepseek-reasoner";
+  }
+
   async *createStreamingCompletion(
     options: CompletionOptions
   ): AsyncGenerator<StreamChunk> {
-    const body = {
+    const isReasoning = this.isReasoningModel(options.model);
+    console.log(
+      `DeepSeek: Model ${options.model}, isReasoning: ${isReasoning}, temperature: ${options.temperature}`
+    );
+
+    const body: any = {
       model: options.model,
       messages: options.messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
       max_tokens: options.maxTokens || 4096,
-      temperature: options.temperature || 0.7,
       stream: true,
     };
 
-    const response = await axios.post(
-      `${this.baseURL}/v1/chat/completions`,
-      body,
-      {
+    // DeepSeek reasoning models might not support custom temperature
+    if (!isReasoning) {
+      body.temperature = options.temperature || 0.7;
+    }
+
+    console.log("DeepSeek Request body:", JSON.stringify(body, null, 2));
+
+    let response;
+    try {
+      response = await axios.post(`${this.baseURL}/v1/chat/completions`, body, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,
         },
         responseType: "stream",
+      });
+    } catch (error: any) {
+      if (error.response) {
+        console.log(
+          "DeepSeek Error Response:",
+          error.response.status,
+          error.response.data
+        );
+        try {
+          const errorData = await error.response.data.read();
+          console.log("DeepSeek Error Details:", errorData.toString());
+        } catch (e) {
+          // Ignore read errors
+        }
       }
-    );
+      throw error;
+    }
 
     const stream = response.data;
     let buffer = "";
