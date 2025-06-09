@@ -184,7 +184,15 @@ const errorResponse: ApiResponse<never> = {
 - Validate configuration on startup
 - Never commit secrets or sensitive data
 
-### 4. Testing Considerations
+### 4. Database Connection Pattern
+
+- Use singleton pattern for database connections via `databaseClient.ts`
+- Database connection is lazy-loaded on first repository method call
+- Server startup does not depend on database availability
+- Repository methods call `await connectToDatabase()` before database operations
+- Handle connection errors gracefully in repository layer
+
+### 5. Testing Considerations
 
 - Write testable code by avoiding side effects
 - Use dependency injection where it makes sense

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getAllModels } from "../config/modelRegistry";
 import { CompletionsManager } from "../managers/CompletionsManager";
+import { ThreadsManager } from "../managers/ThreadsManager";
 import {
   ApiResponse,
   ChatRequest,
@@ -15,9 +16,11 @@ import {
 
 export class ChatController {
   private completionsManager: CompletionsManager;
+  private threadsManager: ThreadsManager;
 
   constructor() {
     this.completionsManager = new CompletionsManager();
+    this.threadsManager = new ThreadsManager();
   }
 
   streamChat: ChatStreamHandler = async (
@@ -27,23 +30,52 @@ export class ChatController {
     try {
       if (!validateChatRequest(req.body)) {
         const errorResponse: ApiResponse<never> = createValidationError(
-          "Invalid request body. Message is required and must be a non-empty string."
+          "Invalid request body. Message is required."
         );
         res.status(400).json(errorResponse);
         return;
       }
 
-      const { message, model, context, promptKey } = req.body;
+      const { message, model, promptKey } = req.body;
+      let { threadId } = req.body;
+
+      let thread;
+      if (threadId) {
+        thread = await this.threadsManager.getThread(threadId);
+        if (!thread) {
+          const errorResponse: ApiResponse<never> = {
+            success: false,
+            error: "Thread not found",
+          };
+          res.status(404).json(errorResponse);
+          return;
+        }
+      } else {
+        const defaultModel = model || "claude-sonnet-4-0";
+        const threadTitle = this.threadsManager.generateThreadTitle(message);
+        thread = await this.threadsManager.createThread(
+          threadTitle,
+          defaultModel
+        );
+        threadId = thread._id!.toString();
+      }
+
+      await this.threadsManager.addMessageToThread(threadId, "user", message);
+
+      const context = await this.threadsManager.getThreadMessages(threadId);
 
       res.setHeader("Content-Type", "text/plain");
       res.setHeader("Transfer-Encoding", "chunked");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Thread-Id", threadId);
+      res.setHeader("X-Thread-Title", thread.title);
+      res.setHeader("X-Thread-Model", thread.model);
 
       const stream = await this.completionsManager.createStreamingCompletion(
         message,
         {
-          model,
+          model: model || thread.model,
           context,
           promptKey,
           maxTokens: 1000,
@@ -51,13 +83,23 @@ export class ChatController {
         }
       );
 
+      let assistantResponse = "";
       for await (const chunk of stream) {
         if (chunk.content) {
+          assistantResponse += chunk.content;
           res.write(chunk.content);
         }
         if (chunk.done) {
           break;
         }
+      }
+
+      if (assistantResponse) {
+        await this.threadsManager.addMessageToThread(
+          threadId,
+          "assistant",
+          assistantResponse
+        );
       }
 
       res.end();
@@ -76,6 +118,86 @@ export class ChatController {
       } else {
         res.end();
       }
+    }
+  };
+
+  createCompletion = async (
+    req: Request<{}, any, ChatRequest, {}>,
+    res: Response<any>
+  ): Promise<void> => {
+    try {
+      if (!validateChatRequest(req.body)) {
+        const errorResponse: ApiResponse<never> = createValidationError(
+          "Invalid request body. Message is required."
+        );
+        res.status(400).json(errorResponse);
+        return;
+      }
+
+      const { message, model, promptKey } = req.body;
+      let { threadId } = req.body;
+
+      let thread;
+      if (threadId) {
+        thread = await this.threadsManager.getThread(threadId);
+        if (!thread) {
+          const errorResponse: ApiResponse<never> = {
+            success: false,
+            error: "Thread not found",
+          };
+          res.status(404).json(errorResponse);
+          return;
+        }
+      } else {
+        const defaultModel = model || "claude-sonnet-4-0";
+        const threadTitle = this.threadsManager.generateThreadTitle(message);
+        thread = await this.threadsManager.createThread(
+          threadTitle,
+          defaultModel
+        );
+        threadId = thread._id!.toString();
+      }
+
+      await this.threadsManager.addMessageToThread(threadId, "user", message);
+
+      const context = await this.threadsManager.getThreadMessages(threadId);
+
+      const response = await this.completionsManager.createCompletion(message, {
+        model: model || thread.model,
+        context,
+        promptKey,
+        maxTokens: 1000,
+        temperature: 0.7,
+      });
+
+      await this.threadsManager.addMessageToThread(
+        threadId,
+        "assistant",
+        response
+      );
+
+      const apiResponse: ApiResponse<any> = {
+        success: true,
+        data: {
+          content: response,
+          thread: {
+            id: threadId,
+            title: thread.title,
+            model: thread.model,
+          },
+        },
+      };
+      res.json(apiResponse);
+    } catch (error) {
+      console.error("Completion error:", error);
+      const errorResponse: ApiResponse<never> = {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create completion",
+      };
+      res.status(500).json(errorResponse);
     }
   };
 

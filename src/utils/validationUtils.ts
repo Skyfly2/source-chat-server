@@ -6,6 +6,8 @@ export const validateChatRequest = (body: any): body is ChatRequest => {
     body !== null &&
     typeof body.message === "string" &&
     body.message.trim().length > 0 &&
+    (body.threadId === undefined ||
+      (typeof body.threadId === "string" && body.threadId.trim().length > 0)) &&
     (body.model === undefined || typeof body.model === "string") &&
     (body.context === undefined ||
       (Array.isArray(body.context) &&

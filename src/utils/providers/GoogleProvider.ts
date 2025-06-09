@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getModelsByProvider } from "../../config/modelRegistry";
 import {
+  AIMessage,
   AIProvider,
-  ChatMessage,
   CompletionOptions,
   CompletionResponse,
   ProviderConfig,
@@ -33,29 +33,19 @@ export class GoogleProvider extends AIProvider {
     return this.getSupportedModels().includes(model);
   }
 
-  private formatMessages(messages: ChatMessage[]): any[] {
-    const formattedMessages = [];
-    let systemPrompt = "";
-
-    for (const message of messages) {
+  private formatMessages(messages: AIMessage[]): any[] {
+    return messages.map((message) => {
       if (message.role === "system") {
-        systemPrompt = message.content;
-      } else {
-        formattedMessages.push({
-          role: message.role === "assistant" ? "model" : "user",
-          parts: [{ text: message.content }],
-        });
+        return {
+          role: "user",
+          content: `System: ${message.content}`,
+        };
       }
-    }
-
-    if (systemPrompt && formattedMessages.length > 0) {
-      const firstMessage = formattedMessages[0];
-      if (firstMessage.role === "user") {
-        firstMessage.parts[0].text = `${systemPrompt}\n\n${firstMessage.parts[0].text}`;
-      }
-    }
-
-    return formattedMessages;
+      return {
+        role: message.role === "assistant" ? "assistant" : "user",
+        content: message.content,
+      };
+    });
   }
 
   async createCompletion(

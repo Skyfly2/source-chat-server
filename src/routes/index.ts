@@ -1,10 +1,12 @@
 import { Request, Response, Router } from "express";
 import { ApiResponse, HealthHandler, HealthResponse } from "../types";
 import chatRoutes from "./chatRoutes";
+import threadsRoutes from "./threadsRoutes";
 
 const router = Router();
 
 router.use("/chat", chatRoutes);
+router.use("/threads", threadsRoutes);
 
 const healthHandler: HealthHandler = (
   __req: Request<{}, ApiResponse<HealthResponse>, {}, {}>,

@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getModelsByProvider } from "../../config/modelRegistry";
 import {
+  AIMessage,
   AIProvider,
-  ChatMessage,
   CompletionOptions,
   CompletionResponse,
   ProviderConfig,
@@ -32,19 +32,18 @@ export class AnthropicProvider extends AIProvider {
     return this.getSupportedModels().includes(model);
   }
 
-  private formatMessages(messages: ChatMessage[]): {
+  private formatMessages(messages: AIMessage[]): {
     system?: string;
-    messages: any[];
+    messages: AIMessage[];
   } {
     const systemMessage = messages.find((msg) => msg.role === "system");
-    const nonSystemMessages = messages.filter((msg) => msg.role !== "system");
+    const conversationMessages = messages.filter(
+      (msg) => msg.role !== "system"
+    );
 
     return {
       system: systemMessage?.content,
-      messages: nonSystemMessages.map((msg) => ({
-        role: msg.role === "assistant" ? "assistant" : "user",
-        content: msg.content,
-      })),
+      messages: conversationMessages,
     };
   }
 

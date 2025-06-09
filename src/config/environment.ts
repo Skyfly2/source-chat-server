@@ -2,7 +2,8 @@ export interface EnvironmentConfig {
   port: number;
   nodeEnv: string;
 
-  mongoUri?: string;
+  mongodbConnectionString?: string;
+  mongodbDatabaseName?: string;
 
   openaiApiKey?: string;
   anthropicApiKey?: string;
@@ -16,7 +17,8 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
     port: parseInt(process.env.PORT || "3000", 10),
     nodeEnv: process.env.NODE_ENV || "development",
 
-    mongoUri: process.env.MONGO_URI,
+    mongodbConnectionString: process.env.MONGODB_CONNECTION_STRING,
+    mongodbDatabaseName: process.env.MONGODB_DATABASE_NAME,
 
     openaiApiKey: process.env.OPENAI_API_KEY,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,

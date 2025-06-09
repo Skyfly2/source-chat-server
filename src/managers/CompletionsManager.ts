@@ -8,7 +8,12 @@ import {
   SYSTEM_PROMPTS,
   SystemPromptKey,
 } from "../config/systemPrompts";
-import { ChatMessage, CompletionOptions, StreamChunk } from "../types";
+import {
+  AIMessage,
+  ChatMessage,
+  CompletionOptions,
+  StreamChunk,
+} from "../types";
 import { getProviderRegistry } from "../utils/ProviderRegistry";
 
 export class CompletionsManager {
@@ -23,30 +28,27 @@ export class CompletionsManager {
 
   private buildMessageHistory(
     userMessage: string,
-    systemPrompt: string,
-    context?: ChatMessage[],
-    modelName?: string
-  ): ChatMessage[] {
-    const messages: ChatMessage[] = [];
+    modelName: string,
+    systemPrompt?: string,
+    context?: AIMessage[]
+  ): AIMessage[] {
+    const messages: AIMessage[] = [];
 
-    // Check if this is a reasoning model that doesn't support system messages
     const isReasoningModel = this.isReasoningModel(modelName);
 
-    if (!isReasoningModel) {
+    if (systemPrompt && !isReasoningModel) {
       messages.push({ role: "system", content: systemPrompt });
     }
 
     if (context && context.length > 0) {
-      const filteredContext = context.filter((msg) => msg.role !== "system");
-      messages.push(...filteredContext);
+      messages.push(...context);
     }
 
-    // For reasoning models, prepend system prompt to user message
-    const finalUserMessage = isReasoningModel
-      ? `${systemPrompt}\n\n${userMessage}`
-      : userMessage;
+    const finalUserMessage = userMessage.trim();
+    if (finalUserMessage) {
+      messages.push({ role: "user", content: finalUserMessage });
+    }
 
-    messages.push({ role: "user", content: finalUserMessage });
     return messages;
   }
 
@@ -106,11 +108,14 @@ export class CompletionsManager {
 
     const validatedModel = this.validateModel(model);
     const systemPrompt = this.getSystemPrompt(promptKey);
+    const aiContext = context
+      ? this.convertChatMessagesToAIMessages(context)
+      : undefined;
     const messages = this.buildMessageHistory(
       userMessage,
+      validatedModel,
       systemPrompt,
-      context,
-      validatedModel
+      aiContext
     );
 
     const provider = this.providerRegistry.getProviderForModel(validatedModel);
@@ -135,7 +140,7 @@ export class CompletionsManager {
       maxTokens?: number;
       temperature?: number;
     } = {}
-  ) {
+  ): Promise<string> {
     const {
       model = DEFAULT_MODEL,
       context = [],
@@ -146,11 +151,14 @@ export class CompletionsManager {
 
     const validatedModel = this.validateModel(model);
     const systemPrompt = this.getSystemPrompt(promptKey);
+    const aiContext = context
+      ? this.convertChatMessagesToAIMessages(context)
+      : undefined;
     const messages = this.buildMessageHistory(
       userMessage,
+      validatedModel,
       systemPrompt,
-      context,
-      validatedModel
+      aiContext
     );
 
     const provider = this.providerRegistry.getProviderForModel(validatedModel);
@@ -160,10 +168,10 @@ export class CompletionsManager {
       messages,
       maxTokens,
       temperature,
-      stream: false,
     };
 
-    return provider.createCompletion(completionOptions);
+    const response = await provider.createCompletion(completionOptions);
+    return response.content;
   }
 
   public getSupportedModels(): string[] {
@@ -180,5 +188,14 @@ export class CompletionsManager {
 
   public getAvailableProviders() {
     return this.providerRegistry.getAvailableProviders();
+  }
+
+  private convertChatMessagesToAIMessages(
+    chatMessages: ChatMessage[]
+  ): AIMessage[] {
+    return chatMessages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
   }
 }

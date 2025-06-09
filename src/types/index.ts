@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
-export interface User {
+export interface MessageThread {
   _id?: ObjectId;
-  name: string;
-  email: string;
+  title: string;
+  model: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,13 +12,23 @@ export interface User {
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
+  threadId: ObjectId;
+  _id?: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AIMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
 }
 
 export interface ChatRequest {
   message: string;
   model?: string;
-  context?: ChatMessage[];
+  context?: AIMessage[];
   promptKey?: string;
+  threadId?: string;
 }
 
 export interface CompletionConfig {
@@ -39,7 +49,7 @@ export interface ApiResponse<T> {
 // AI Provider Types
 export interface CompletionOptions {
   model: string;
-  messages: ChatMessage[];
+  messages: AIMessage[];
   maxTokens?: number;
   temperature?: number;
   stream?: boolean;
@@ -188,3 +198,53 @@ export type GetModelsHandler = ApiHandler<string[]>;
 export type GetPromptsHandler = ApiHandler<Record<string, string>>;
 
 export type HealthHandler = ApiHandler<HealthResponse>;
+
+export interface CreateThreadRequest {
+  title: string;
+  model: string;
+}
+
+export interface UpdateThreadRequest {
+  title?: string;
+  model?: string;
+}
+
+export interface ThreadResponse {
+  thread: MessageThread;
+}
+
+export interface ThreadsResponse {
+  threads: MessageThread[];
+  total: number;
+}
+
+export type CreateThreadHandler = ExpressHandler<
+  {},
+  ApiResponse<ThreadResponse>,
+  CreateThreadRequest,
+  {}
+>;
+export type GetThreadHandler = ExpressHandler<
+  { threadId: string },
+  ApiResponse<ThreadResponse>,
+  {},
+  {}
+>;
+export type UpdateThreadHandler = ExpressHandler<
+  { threadId: string },
+  ApiResponse<ThreadResponse>,
+  UpdateThreadRequest,
+  {}
+>;
+export type DeleteThreadHandler = ExpressHandler<
+  { threadId: string },
+  ApiResponse<never>,
+  {},
+  {}
+>;
+export type GetThreadsHandler = ExpressHandler<
+  {},
+  ApiResponse<ThreadsResponse>,
+  {},
+  { limit?: string; skip?: string; search?: string }
+>;
