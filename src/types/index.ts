@@ -1,9 +1,29 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
+export interface User {
+  _id?: ObjectId;
+  clerkUserId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: ClerkUser;
+}
+
+export type ClerkUser = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  publicMetadata: Record<string, any>;
+  privateMetadata: Record<string, any>;
+};
 export interface MessageThread {
   _id?: ObjectId;
   title: string;
+  userId?: ObjectId;
   model: string;
   createdAt: Date;
   updatedAt: Date;

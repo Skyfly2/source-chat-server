@@ -1,5 +1,7 @@
+import clerkClient from "@clerk/clerk-sdk-node";
+import jwt from "jsonwebtoken";
 import { UserRepository } from "../data/UserRepository";
-import { User } from "../types";
+import { ClerkUser, User } from "../types";
 
 export class UserManager {
   private userRepository: UserRepository;
@@ -38,5 +40,27 @@ export class UserManager {
     }
 
     return await this.userRepository.deleteUser(clerkUserId);
+  }
+
+  async verifySessionToken(sessionToken: string): Promise<ClerkUser | null> {
+    try {
+      const decoded = jwt.decode(sessionToken) as any;
+      if (decoded && decoded.sub) {
+        const userId = decoded.sub;
+        const user = await clerkClient.users.getUser(userId);
+
+        return {
+          id: user.id,
+          email: user.emailAddresses[0]?.emailAddress || "",
+          firstName: user.firstName,
+          lastName: user.lastName,
+          publicMetadata: user.publicMetadata,
+          privateMetadata: user.privateMetadata,
+        };
+      }
+    } catch (jwtError) {
+      return null;
+    }
+    return null;
   }
 }
