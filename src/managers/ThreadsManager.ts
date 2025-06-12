@@ -12,10 +12,10 @@ export class ThreadsManager {
     this.messageRepository = new ChatMessageRepository();
   }
 
-  async createThread(title: string, model: string): Promise<MessageThread> {
+  async createThread(title: string, userId: string): Promise<MessageThread> {
     const threadData = {
       title,
-      model,
+      userId,
     };
 
     return await this.threadRepository.createThread(threadData);
@@ -70,13 +70,6 @@ export class ThreadsManager {
     title: string
   ): Promise<MessageThread | null> {
     return await this.threadRepository.updateThread(threadId, { title });
-  }
-
-  async updateThreadModel(
-    threadId: string | ObjectId,
-    model: string
-  ): Promise<MessageThread | null> {
-    return await this.threadRepository.updateThread(threadId, { model });
   }
 
   async deleteThread(threadId: string | ObjectId): Promise<boolean> {

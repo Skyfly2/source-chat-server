@@ -26,7 +26,6 @@ export class OpenAIProvider extends AIProvider {
 
   getSupportedModels(): string[] {
     const models = getModelsByProvider("openai");
-    console.log("OpenAI models from registry:", models);
     return models.map((model) => model.name);
   }
 
@@ -113,11 +112,6 @@ export class OpenAIProvider extends AIProvider {
         requestParams.max_tokens = options.maxTokens;
       }
     }
-
-    console.log(
-      "OpenAI Request params:",
-      JSON.stringify(requestParams, null, 2)
-    );
 
     const stream = (await this.client.chat.completions.create(
       requestParams

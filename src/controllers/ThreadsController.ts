@@ -4,7 +4,6 @@ import {
   ApiResponse,
   ChatMessage,
   CreateThreadHandler,
-  CreateThreadRequest,
   DeleteThreadHandler,
   GetThreadHandler,
   GetThreadsHandler,
@@ -23,11 +22,12 @@ export class ThreadsController {
   }
 
   createThread: CreateThreadHandler = async (
-    req: Request<{}, ApiResponse<ThreadResponse>, CreateThreadRequest, {}>,
+    req,
     res: Response<ApiResponse<ThreadResponse>>
   ): Promise<void> => {
     try {
       const { title, model } = req.body;
+      const { user } = req;
 
       if (!title || typeof title !== "string" || title.trim().length === 0) {
         const errorResponse = createValidationError(
@@ -47,7 +47,7 @@ export class ThreadsController {
 
       const thread = await this.threadsManager.createThread(
         title.trim(),
-        model.trim()
+        user.id
       );
 
       const response: ApiResponse<ThreadResponse> = {
@@ -153,7 +153,7 @@ export class ThreadsController {
   ): Promise<void> => {
     try {
       const { threadId } = req.params;
-      const { title, model } = req.body;
+      const { title } = req.body;
 
       if (!threadId) {
         const errorResponse = createValidationError("Thread ID is required");
@@ -161,25 +161,15 @@ export class ThreadsController {
         return;
       }
 
-      if (!title && !model) {
+      if (!title) {
         const errorResponse = createValidationError(
-          "At least one field (title or model) must be provided"
+          "At least one field (title) must be provided"
         );
         res.status(400).json(errorResponse);
         return;
       }
 
-      let thread;
-      if (title && model) {
-        thread = await this.threadsManager.updateThreadTitle(threadId, title);
-        if (thread) {
-          thread = await this.threadsManager.updateThreadModel(threadId, model);
-        }
-      } else if (title) {
-        thread = await this.threadsManager.updateThreadTitle(threadId, title);
-      } else if (model) {
-        thread = await this.threadsManager.updateThreadModel(threadId, model);
-      }
+      let thread = await this.threadsManager.updateThreadTitle(threadId, title);
 
       if (!thread) {
         const errorResponse: ApiResponse<never> = {

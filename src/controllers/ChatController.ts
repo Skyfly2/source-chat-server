@@ -5,9 +5,10 @@ import { CompletionsManager } from "../managers/CompletionsManager";
 import { ThreadsManager } from "../managers/ThreadsManager";
 import {
   ApiResponse,
+  AuthenticatedChatStreamHandler,
+  AuthenticatedRequest,
   ChatMessage,
   ChatRequest,
-  ChatStreamHandler,
   GetModelsHandler,
   GetPromptsHandler,
 } from "../types";
@@ -25,8 +26,8 @@ export class ChatController {
     this.threadsManager = new ThreadsManager();
   }
 
-  streamChat: ChatStreamHandler = async (
-    req: Request<{}, any, ChatRequest, {}>,
+  streamChat: AuthenticatedChatStreamHandler = async (
+    req,
     res: Response<any>
   ): Promise<void> => {
     try {
@@ -39,7 +40,15 @@ export class ChatController {
       }
 
       const { message, model, promptKey, context: providedContext } = req.body;
+      const { user } = req;
       let { threadId } = req.body;
+
+      if (!model) {
+        const errorResponse: ApiResponse<never> =
+          createValidationError("Model is required.");
+        res.status(400).json(errorResponse);
+        return;
+      }
 
       let thread;
       if (threadId) {
@@ -53,12 +62,8 @@ export class ChatController {
           return;
         }
       } else {
-        const defaultModel = model || "claude-sonnet-4-0";
         const threadTitle = this.threadsManager.generateThreadTitle(message);
-        thread = await this.threadsManager.createThread(
-          threadTitle,
-          defaultModel
-        );
+        thread = await this.threadsManager.createThread(threadTitle, user.id);
         threadId = thread._id!.toString();
       }
 
@@ -86,12 +91,12 @@ export class ChatController {
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Thread-Id", threadId);
       res.setHeader("X-Thread-Title", thread.title);
-      res.setHeader("X-Thread-Model", thread.model);
+      res.setHeader("X-Thread-Model", model);
 
       const stream = await this.completionsManager.createStreamingCompletion(
         message,
         {
-          model: model || thread.model,
+          model,
           context,
           promptKey,
           maxTokens: 1000,
@@ -138,7 +143,7 @@ export class ChatController {
   };
 
   createCompletion = async (
-    req: Request<{}, any, ChatRequest, {}>,
+    req: AuthenticatedRequest & Request<{}, any, ChatRequest, {}>,
     res: Response<any>
   ): Promise<void> => {
     try {
@@ -151,7 +156,15 @@ export class ChatController {
       }
 
       const { message, model, promptKey, context: providedContext } = req.body;
+      const { user } = req;
       let { threadId } = req.body;
+
+      if (!model) {
+        const errorResponse: ApiResponse<never> =
+          createValidationError("Model is required.");
+        res.status(400).json(errorResponse);
+        return;
+      }
 
       let thread;
       if (threadId) {
@@ -165,12 +178,9 @@ export class ChatController {
           return;
         }
       } else {
-        const defaultModel = model || "claude-sonnet-4-0";
         const threadTitle = this.threadsManager.generateThreadTitle(message);
-        thread = await this.threadsManager.createThread(
-          threadTitle,
-          defaultModel
-        );
+        thread = await this.threadsManager.createThread(threadTitle, user.id);
+
         threadId = thread._id!.toString();
       }
 
@@ -193,7 +203,7 @@ export class ChatController {
       }
 
       const response = await this.completionsManager.createCompletion(message, {
-        model: model || thread.model,
+        model,
         context,
         promptKey,
         maxTokens: 1000,
@@ -213,7 +223,7 @@ export class ChatController {
           thread: {
             id: threadId,
             title: thread.title,
-            model: thread.model,
+            model,
           },
         },
       };

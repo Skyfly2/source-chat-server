@@ -23,8 +23,7 @@ export type ClerkUser = {
 export interface MessageThread {
   _id?: ObjectId;
   title: string;
-  userId?: ObjectId;
-  model: string;
+  userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -193,6 +192,17 @@ export type ExpressHandler<
   res: Response<ResBody>
 ) => Promise<void> | void;
 
+// Authenticated Express handler utility type
+export type AuthenticatedExpressHandler<
+  P = {},
+  ResBody = any,
+  ReqBody = {},
+  ReqQuery = {}
+> = (
+  req: AuthenticatedRequest & Request<P, ResBody, ReqBody, ReqQuery>,
+  res: Response<ResBody>
+) => Promise<void> | void;
+
 export type ApiHandler<T, P = {}, ReqBody = {}, ReqQuery = {}> = ExpressHandler<
   P,
   ApiResponse<T>,
@@ -212,6 +222,13 @@ export interface GetPromptsRequest
 
 // Specific endpoint handler types
 export type ChatStreamHandler = ExpressHandler<{}, any, ChatRequest, {}>;
+
+export type AuthenticatedChatStreamHandler = AuthenticatedExpressHandler<
+  {},
+  any,
+  ChatRequest,
+  {}
+>;
 
 export type GetModelsHandler = ApiHandler<string[]>;
 
@@ -238,7 +255,7 @@ export interface ThreadsResponse {
   total: number;
 }
 
-export type CreateThreadHandler = ExpressHandler<
+export type CreateThreadHandler = AuthenticatedExpressHandler<
   {},
   ApiResponse<ThreadResponse>,
   CreateThreadRequest,
