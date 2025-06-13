@@ -35,11 +35,16 @@ export class ThreadsManager {
     return { thread, messages };
   }
 
-  async getAllThreads(
+  async getAllThreadsForUser(
+    userId: string,
     limit: number = 10,
     skip: number = 0
   ): Promise<MessageThread[]> {
-    return await this.threadRepository.getAllThreads(limit, skip);
+    return await this.threadRepository.getAllThreadsForUser(
+      userId,
+      limit,
+      skip
+    );
   }
 
   async addMessageToThread(

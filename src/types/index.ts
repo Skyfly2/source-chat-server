@@ -261,27 +261,3 @@ export type CreateThreadHandler = AuthenticatedExpressHandler<
   CreateThreadRequest,
   {}
 >;
-export type GetThreadHandler = ExpressHandler<
-  { threadId: string },
-  ApiResponse<ThreadResponse>,
-  {},
-  {}
->;
-export type UpdateThreadHandler = ExpressHandler<
-  { threadId: string },
-  ApiResponse<ThreadResponse>,
-  UpdateThreadRequest,
-  {}
->;
-export type DeleteThreadHandler = ExpressHandler<
-  { threadId: string },
-  ApiResponse<never>,
-  {},
-  {}
->;
-export type GetThreadsHandler = ExpressHandler<
-  {},
-  ApiResponse<ThreadsResponse>,
-  {},
-  { limit?: string; skip?: string; search?: string }
->;

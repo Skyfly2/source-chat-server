@@ -32,13 +32,14 @@ export class MessageThreadRepository {
     return await this.collection.findOne({ _id: objectId });
   }
 
-  async getAllThreads(
+  async getAllThreadsForUser(
+    userId: string,
     limit: number = 10,
     skip: number = 0
   ): Promise<MessageThread[]> {
     await connectToDatabase();
     return await this.collection
-      .find({})
+      .find({ userId })
       .sort({ updatedAt: -1 })
       .limit(limit)
       .skip(skip)

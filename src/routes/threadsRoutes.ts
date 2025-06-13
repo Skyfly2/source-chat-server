@@ -1,23 +1,28 @@
 import { Router } from "express";
 import { ThreadsController } from "../controllers/ThreadsController";
+import { requireAuth } from "../middleware/auth";
+import { AuthenticatedRequest } from "../types";
 
 const router = Router();
 const threadsController = new ThreadsController();
 
-router.post("/", threadsController.createThread.bind(threadsController));
-router.get("/", threadsController.getThreads.bind(threadsController));
-router.get("/:threadId", threadsController.getThread.bind(threadsController));
-router.get(
-  "/:threadId/messages",
-  threadsController.getThreadMessages.bind(threadsController)
+router.post("/", requireAuth, (req, res) =>
+  threadsController.createThread(req as AuthenticatedRequest, res)
 );
-router.put(
-  "/:threadId",
-  threadsController.updateThread.bind(threadsController)
+router.get("/", requireAuth, (req, res) =>
+  threadsController.getThreads(req as AuthenticatedRequest, res)
 );
-router.delete(
-  "/:threadId",
-  threadsController.deleteThread.bind(threadsController)
+router.get("/:threadId", requireAuth, (req, res) =>
+  threadsController.getThread(req as AuthenticatedRequest, res)
+);
+router.get("/:threadId/messages", requireAuth, (req, res) =>
+  threadsController.getThreadMessages(req as AuthenticatedRequest, res)
+);
+router.put("/:threadId", requireAuth, (req, res) =>
+  threadsController.updateThread(req as AuthenticatedRequest, res)
+);
+router.delete("/:threadId", requireAuth, (req, res) =>
+  threadsController.deleteThread(req as AuthenticatedRequest, res)
 );
 
 export default router;

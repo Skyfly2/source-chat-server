@@ -1,16 +1,11 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { ThreadsManager } from "../managers/ThreadsManager";
 import {
   ApiResponse,
+  AuthenticatedRequest,
   ChatMessage,
-  CreateThreadHandler,
-  DeleteThreadHandler,
-  GetThreadHandler,
-  GetThreadsHandler,
   ThreadResponse,
   ThreadsResponse,
-  UpdateThreadHandler,
-  UpdateThreadRequest,
 } from "../types";
 import { createValidationError } from "../utils/validationUtils";
 
@@ -21,8 +16,8 @@ export class ThreadsController {
     this.threadsManager = new ThreadsManager();
   }
 
-  createThread: CreateThreadHandler = async (
-    req,
+  createThread = async (
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<ThreadResponse>>
   ): Promise<void> => {
     try {
@@ -65,8 +60,8 @@ export class ThreadsController {
     }
   };
 
-  getThread: GetThreadHandler = async (
-    req: Request<{ threadId: string }, ApiResponse<ThreadResponse>, {}, {}>,
+  getThread = async (
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<ThreadResponse>>
   ): Promise<void> => {
     try {
@@ -103,26 +98,31 @@ export class ThreadsController {
     }
   };
 
-  getThreads: GetThreadsHandler = async (
-    req: Request<
-      {},
-      ApiResponse<ThreadsResponse>,
-      {},
-      { limit?: string; skip?: string; search?: string }
-    >,
+  getThreads = async (
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<ThreadsResponse>>
   ): Promise<void> => {
     try {
       const { limit = "10", skip = "0", search } = req.query;
 
-      const limitNum = Math.max(1, Math.min(50, parseInt(limit, 10) || 10));
-      const skipNum = Math.max(0, parseInt(skip, 10) || 0);
+      const limitNum = Math.max(
+        1,
+        Math.min(50, parseInt(limit as string, 10) || 10)
+      );
+      const skipNum = Math.max(0, parseInt(skip as string, 10) || 0);
 
       let threads;
       if (search) {
-        threads = await this.threadsManager.searchThreads(search, limitNum);
+        threads = await this.threadsManager.searchThreads(
+          search as string,
+          limitNum
+        );
       } else {
-        threads = await this.threadsManager.getAllThreads(limitNum, skipNum);
+        threads = await this.threadsManager.getAllThreadsForUser(
+          req.user.id,
+          limitNum,
+          skipNum
+        );
       }
 
       const response: ApiResponse<ThreadsResponse> = {
@@ -142,13 +142,8 @@ export class ThreadsController {
     }
   };
 
-  updateThread: UpdateThreadHandler = async (
-    req: Request<
-      { threadId: string },
-      ApiResponse<ThreadResponse>,
-      UpdateThreadRequest,
-      {}
-    >,
+  updateThread = async (
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<ThreadResponse>>
   ): Promise<void> => {
     try {
@@ -196,12 +191,7 @@ export class ThreadsController {
   };
 
   getThreadMessages = async (
-    req: Request<
-      { threadId: string },
-      ApiResponse<{ messages: ChatMessage[] }>,
-      {},
-      {}
-    >,
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<{ messages: ChatMessage[] }>>
   ): Promise<void> => {
     try {
@@ -242,8 +232,8 @@ export class ThreadsController {
     }
   };
 
-  deleteThread: DeleteThreadHandler = async (
-    req: Request<{ threadId: string }, ApiResponse<never>, {}, {}>,
+  deleteThread = async (
+    req: AuthenticatedRequest,
     res: Response<ApiResponse<never>>
   ): Promise<void> => {
     try {
