@@ -302,3 +302,16 @@ export interface ModelsApiResponse {
   allModels: OpenRouterModel[];
   totalModels: number;
 }
+
+export interface ImportantModelsApiResponse {
+  models: OpenRouterModel[];
+  count: number;
+}
+
+export interface AllModelsApiResponse {
+  models: OpenRouterModel[];
+  totalModels: number;
+}
+
+export type GetImportantModelsHandler = ApiHandler<ImportantModelsApiResponse>;
+export type GetAllModelsHandler = ApiHandler<AllModelsApiResponse>;

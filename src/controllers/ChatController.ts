@@ -3,12 +3,14 @@ import { ObjectId } from "mongodb";
 import { CompletionsManager } from "../managers/CompletionsManager";
 import { ThreadsManager } from "../managers/ThreadsManager";
 import {
+  AllModelsApiResponse,
   ApiResponse,
   AuthenticatedChatStreamHandler,
   ChatMessage,
-  GetModelsHandler,
+  GetAllModelsHandler,
+  GetImportantModelsHandler,
   GetPromptsHandler,
-  ModelsApiResponse,
+  ImportantModelsApiResponse,
   OpenRouterModel,
   OpenRouterModelsResponse,
 } from "../types";
@@ -163,60 +165,99 @@ export class ChatController {
     }
   };
 
-  getModels: GetModelsHandler = async (
-    __req: Request<{}, ApiResponse<ModelsApiResponse>, {}, {}>,
-    res: Response<ApiResponse<ModelsApiResponse>>
+  private async fetchAndFilterModels(): Promise<{
+    importantModels: OpenRouterModel[];
+    allModels: OpenRouterModel[];
+    totalModels: number;
+  }> {
+    const response = await fetch("https://openrouter.ai/api/v1/models");
+
+    if (!response.ok) {
+      throw new Error(
+        `OpenRouter API error: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = (await response.json()) as OpenRouterModelsResponse;
+    const allModels = data.data || [];
+
+    const filteredModels = allModels.filter(
+      (model: OpenRouterModel) =>
+        model.context_length >= 4000 &&
+        parseFloat(model.pricing?.prompt || "0") < 1.0 &&
+        parseFloat(model.pricing?.completion || "0") < 1.0
+    );
+
+    const importantModels = filteredModels.filter((model: OpenRouterModel) =>
+      IMPORTANT_MODELS.has(model.id)
+    );
+
+    const sortModels = (models: OpenRouterModel[]) =>
+      models.sort((a, b) => {
+        const providerA = a.id.split("/")[0];
+        const providerB = b.id.split("/")[0];
+        if (providerA !== providerB) {
+          return providerA.localeCompare(providerB);
+        }
+        return a.name.localeCompare(b.name);
+      });
+
+    return {
+      importantModels: sortModels([...importantModels]),
+      allModels: sortModels([...filteredModels]),
+      totalModels: allModels.length,
+    };
+  }
+
+  getImportantModels: GetImportantModelsHandler = async (
+    __req: Request<{}, ApiResponse<ImportantModelsApiResponse>, {}, {}>,
+    res: Response<ApiResponse<ImportantModelsApiResponse>>
   ): Promise<void> => {
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/models");
+      const { importantModels } = await this.fetchAndFilterModels();
 
-      if (!response.ok) {
-        throw new Error(
-          `OpenRouter API error: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = (await response.json()) as OpenRouterModelsResponse;
-      const allModels = data.data || [];
-
-      // Filter out models with very low context windows or extremely high pricing
-      const filteredModels = allModels.filter(
-        (model: OpenRouterModel) =>
-          model.context_length >= 4000 &&
-          parseFloat(model.pricing?.prompt || "0") < 1.0 &&
-          parseFloat(model.pricing?.completion || "0") < 1.0
-      );
-
-      // Separate important models from all models
-      const importantModels = filteredModels.filter((model: OpenRouterModel) =>
-        IMPORTANT_MODELS.has(model.id)
-      );
-
-      // Sort both arrays by provider and then by name
-      const sortModels = (models: OpenRouterModel[]) =>
-        models.sort((a, b) => {
-          const providerA = a.id.split("/")[0];
-          const providerB = b.id.split("/")[0];
-          if (providerA !== providerB) {
-            return providerA.localeCompare(providerB);
-          }
-          return a.name.localeCompare(b.name);
-        });
-
-      const apiResponse: ApiResponse<ModelsApiResponse> = {
+      const apiResponse: ApiResponse<ImportantModelsApiResponse> = {
         success: true,
         data: {
-          importantModels: sortModels([...importantModels]),
-          allModels: sortModels([...filteredModels]),
-          totalModels: allModels.length,
+          models: importantModels,
+          count: importantModels.length,
         },
       };
       res.json(apiResponse);
     } catch (error) {
-      console.error("Error fetching models from OpenRouter:", error);
+      console.error("Error fetching important models from OpenRouter:", error);
       const errorResponse: ApiResponse<never> = {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to get models",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get important models",
+      };
+      res.status(500).json(errorResponse);
+    }
+  };
+
+  getAllModels: GetAllModelsHandler = async (
+    __req: Request<{}, ApiResponse<AllModelsApiResponse>, {}, {}>,
+    res: Response<ApiResponse<AllModelsApiResponse>>
+  ): Promise<void> => {
+    try {
+      const { allModels, totalModels } = await this.fetchAndFilterModels();
+
+      const apiResponse: ApiResponse<AllModelsApiResponse> = {
+        success: true,
+        data: {
+          models: allModels,
+          totalModels,
+        },
+      };
+      res.json(apiResponse);
+    } catch (error) {
+      console.error("Error fetching all models from OpenRouter:", error);
+      const errorResponse: ApiResponse<never> = {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to get all models",
       };
       res.status(500).json(errorResponse);
     }

@@ -351,3 +351,6 @@ const errorResponse: ApiResponse<never> = {
 - PascalCase for classes: `UserController.ts`, `DatabaseManager.ts`
 - camelCase for utilities: `dateUtils.ts`, `validationHelpers.ts`
 - Plural for directories: `controllers/`, `managers/`, `utils/`
+
+Remember: Clean code is not just about following patterns, but about making the codebase maintainable, testable, and easy to understand for future developers.
+When new style concerns are addressed, make sure to update the .cursorrules file to address those changes
