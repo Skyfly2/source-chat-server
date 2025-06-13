@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { getAllModels } from "../config/modelRegistry";
 import { CompletionsManager } from "../managers/CompletionsManager";
 import { ThreadsManager } from "../managers/ThreadsManager";
 import {
@@ -9,11 +8,35 @@ import {
   ChatMessage,
   GetModelsHandler,
   GetPromptsHandler,
+  ModelsApiResponse,
+  OpenRouterModel,
+  OpenRouterModelsResponse,
 } from "../types";
 import {
   createValidationError,
   validateChatRequest,
 } from "../utils/validationUtils";
+
+const IMPORTANT_MODELS = new Set([
+  // OpenAI
+  "openai/gpt-4o",
+  "openai/gpt-4o-mini",
+  "openai/o1",
+  "openai/o1-mini",
+  "openai/gpt-4-turbo",
+
+  // Anthropic
+  "anthropic/claude-3.5-sonnet",
+  "anthropic/claude-3.5-haiku",
+  "anthropic/claude-3-opus",
+
+  // Google
+  "google/gemini-2.5-flash",
+
+  // DeepSeek
+  "deepseek/deepseek-chat",
+  "deepseek/deepseek-r1",
+]);
 
 export class ChatController {
   private completionsManager: CompletionsManager;
@@ -141,52 +164,56 @@ export class ChatController {
   };
 
   getModels: GetModelsHandler = async (
-    __req: Request<{}, ApiResponse<any>, {}, {}>,
-    res: Response<ApiResponse<any>>
+    __req: Request<{}, ApiResponse<ModelsApiResponse>, {}, {}>,
+    res: Response<ApiResponse<ModelsApiResponse>>
   ): Promise<void> => {
     try {
-      const allModels = getAllModels();
-      const availableProviders =
-        this.completionsManager.getAvailableProviders();
+      const response = await fetch("https://openrouter.ai/api/v1/models");
 
-      // Filter models to only include those whose providers are available
-      const availableModels = allModels.filter((model) =>
-        availableProviders.includes(model.provider)
+      if (!response.ok) {
+        throw new Error(
+          `OpenRouter API error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = (await response.json()) as OpenRouterModelsResponse;
+      const allModels = data.data || [];
+
+      // Filter out models with very low context windows or extremely high pricing
+      const filteredModels = allModels.filter(
+        (model: OpenRouterModel) =>
+          model.context_length >= 4000 &&
+          parseFloat(model.pricing?.prompt || "0") < 1.0 &&
+          parseFloat(model.pricing?.completion || "0") < 1.0
       );
 
-      // Get all registry keys (including aliases) for available providers
-      const { MODEL_REGISTRY } = require("../config/modelRegistry");
-      const allRegistryKeys = Object.keys(MODEL_REGISTRY).filter((key) => {
-        const modelInfo = MODEL_REGISTRY[key];
-        return availableProviders.includes(modelInfo.provider);
-      });
+      // Separate important models from all models
+      const importantModels = filteredModels.filter((model: OpenRouterModel) =>
+        IMPORTANT_MODELS.has(model.id)
+      );
 
-      // Deduplicate model details by actual model name
-      const uniqueModelDetails = new Map();
-      availableModels.forEach((model) => {
-        if (!uniqueModelDetails.has(model.name)) {
-          uniqueModelDetails.set(model.name, {
-            name: model.name,
-            displayName: model.displayName,
-            provider: model.provider,
-            maxTokens: model.maxTokens,
-            contextWindow: model.contextWindow,
-            supportsStreaming: model.supportsStreaming,
-            features: model.features,
-          });
-        }
-      });
+      // Sort both arrays by provider and then by name
+      const sortModels = (models: OpenRouterModel[]) =>
+        models.sort((a, b) => {
+          const providerA = a.id.split("/")[0];
+          const providerB = b.id.split("/")[0];
+          if (providerA !== providerB) {
+            return providerA.localeCompare(providerB);
+          }
+          return a.name.localeCompare(b.name);
+        });
 
-      const response: ApiResponse<any> = {
+      const apiResponse: ApiResponse<ModelsApiResponse> = {
         success: true,
         data: {
-          models: allRegistryKeys,
-          modelDetails: Array.from(uniqueModelDetails.values()),
-          availableProviders,
+          importantModels: sortModels([...importantModels]),
+          allModels: sortModels([...filteredModels]),
+          totalModels: allModels.length,
         },
       };
-      res.json(response);
+      res.json(apiResponse);
     } catch (error) {
+      console.error("Error fetching models from OpenRouter:", error);
       const errorResponse: ApiResponse<never> = {
         success: false,
         error: error instanceof Error ? error.message : "Failed to get models",

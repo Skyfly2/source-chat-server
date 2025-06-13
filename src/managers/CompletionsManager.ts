@@ -1,9 +1,4 @@
 import {
-  DEFAULT_MODEL,
-  getModelInfo,
-  isModelSupported,
-} from "../config/modelRegistry";
-import {
   DEFAULT_SYSTEM_PROMPT,
   SYSTEM_PROMPTS,
   SystemPromptKey,
@@ -14,10 +9,12 @@ import {
   CompletionOptions,
   StreamChunk,
 } from "../types";
-import { getProviderRegistry } from "../utils/ProviderRegistry";
+import { getOpenRouterRegistry } from "../utils/OpenRouterRegistry";
+
+const DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini";
 
 export class CompletionsManager {
-  private providerRegistry = getProviderRegistry();
+  private openRouterRegistry = getOpenRouterRegistry();
 
   private getSystemPrompt(promptKey?: string): string {
     if (promptKey && promptKey in SYSTEM_PROMPTS) {
@@ -55,37 +52,31 @@ export class CompletionsManager {
   private isReasoningModel(modelName?: string): boolean {
     if (!modelName) return false;
 
-    const modelInfo = getModelInfo(modelName);
-    if (!modelInfo) return false;
-
-    // Check if model has reasoning feature or is an o1/o3/o4 series model
-    const hasReasoningFeature = modelInfo.features?.reasoning === true;
-    const isOpenAIReasoningModel = /^(o1|o3|o4)(-|$)/.test(modelName);
+    // Check if model is a reasoning model based on name patterns
+    const isOpenAIReasoningModel =
+      modelName.includes("/o1") ||
+      modelName.includes("/o3") ||
+      modelName.includes("/o4");
     const isDeepSeekReasoningModel =
       modelName.includes("deepseek-r1") ||
       modelName.includes("deepseek-reasoner");
 
-    return (
-      hasReasoningFeature || isOpenAIReasoningModel || isDeepSeekReasoningModel
-    );
+    return isOpenAIReasoningModel || isDeepSeekReasoningModel;
   }
 
-  private validateModel(model: string): string {
-    if (!isModelSupported(model)) {
-      const availableModels = this.providerRegistry.getAllAvailableModels();
+  private async validateModel(model: string): Promise<string> {
+    const isSupported = await this.openRouterRegistry.isModelSupported(model);
+    if (!isSupported) {
+      const availableModels =
+        await this.openRouterRegistry.getAllAvailableModels();
       throw new Error(
-        `Unsupported model: ${model}. Available models: ${availableModels.join(
-          ", "
-        )}`
+        `Unsupported model: ${model}. Available models: ${availableModels
+          .slice(0, 10)
+          .join(", ")}...`
       );
     }
 
-    const modelInfo = getModelInfo(model);
-    if (!modelInfo) {
-      throw new Error(`Model info not found for: ${model}`);
-    }
-
-    return modelInfo.name;
+    return model;
   }
 
   public async createStreamingCompletion(
@@ -99,14 +90,17 @@ export class CompletionsManager {
     } = {}
   ): Promise<AsyncGenerator<StreamChunk>> {
     const {
-      model = DEFAULT_MODEL,
+      model = DEFAULT_OPENROUTER_MODEL,
       context = [],
       promptKey,
       maxTokens = 1000,
       temperature = 0.7,
     } = options;
 
-    const validatedModel = this.validateModel(model);
+    // Ensure registry is initialized
+    await this.openRouterRegistry.initialize();
+
+    const validatedModel = await this.validateModel(model);
     const systemPrompt = this.getSystemPrompt(promptKey);
     const aiContext = context
       ? this.convertChatMessagesToAIMessages(context)
@@ -118,7 +112,7 @@ export class CompletionsManager {
       aiContext
     );
 
-    const provider = this.providerRegistry.getProviderForModel(validatedModel);
+    const provider = this.openRouterRegistry.getProvider();
 
     const completionOptions: CompletionOptions = {
       model: validatedModel,
@@ -131,20 +125,20 @@ export class CompletionsManager {
     return provider.createStreamingCompletion(completionOptions);
   }
 
-  public getSupportedModels(): string[] {
-    return this.providerRegistry.getAllAvailableModels();
+  public async getSupportedModels(): Promise<string[]> {
+    return await this.openRouterRegistry.getAllAvailableModels();
   }
 
   public getSystemPrompts(): Record<string, string> {
     return { ...SYSTEM_PROMPTS };
   }
 
-  public isModelAvailable(model: string): boolean {
-    return this.providerRegistry.isModelSupported(model);
+  public async isModelAvailable(model: string): Promise<boolean> {
+    return await this.openRouterRegistry.isModelSupported(model);
   }
 
   public getAvailableProviders() {
-    return this.providerRegistry.getAvailableProviders();
+    return ["openrouter"];
   }
 
   private convertChatMessagesToAIMessages(

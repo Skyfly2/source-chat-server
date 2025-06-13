@@ -95,7 +95,6 @@ export abstract class AIProvider {
   abstract createStreamingCompletion(
     options: CompletionOptions
   ): AsyncGenerator<StreamChunk>;
-  abstract isModelSupported(model: string): boolean;
 }
 
 export interface ProviderConfig {
@@ -104,12 +103,7 @@ export interface ProviderConfig {
   [key: string]: any;
 }
 
-export type AIProviderType =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "xai"
-  | "deepseek";
+export type AIProviderType = "openrouter";
 
 export interface ModelFeatures {
   reasoning?: boolean;
@@ -227,7 +221,7 @@ export type AuthenticatedChatStreamHandler = AuthenticatedExpressHandler<
   {}
 >;
 
-export type GetModelsHandler = ApiHandler<string[]>;
+export type GetModelsHandler = ApiHandler<ModelsApiResponse>;
 
 export type GetPromptsHandler = ApiHandler<Record<string, string>>;
 
@@ -258,3 +252,53 @@ export type CreateThreadHandler = AuthenticatedExpressHandler<
   CreateThreadRequest,
   {}
 >;
+
+// OpenRouter Models API Types (for /api/v1/models endpoint)
+export interface OpenRouterModelPricing {
+  prompt: string;
+  completion: string;
+  request: string;
+  image: string;
+  web_search: string;
+  internal_reasoning: string;
+  input_cache_read?: string;
+  input_cache_write?: string;
+}
+
+export interface OpenRouterModelArchitecture {
+  modality: string;
+  input_modalities: string[];
+  output_modalities: string[];
+  tokenizer: string;
+  instruct_type?: string | null;
+}
+
+export interface OpenRouterModelTopProvider {
+  context_length: number;
+  max_completion_tokens?: number | null;
+  is_moderated: boolean;
+}
+
+export interface OpenRouterModel {
+  id: string;
+  name: string;
+  created: number;
+  description: string;
+  context_length: number;
+  architecture: OpenRouterModelArchitecture;
+  pricing: OpenRouterModelPricing;
+  top_provider: OpenRouterModelTopProvider;
+  per_request_limits?: Record<string, unknown> | null;
+  supported_parameters: string[];
+  hugging_face_id?: string | null;
+}
+
+export interface OpenRouterModelsResponse {
+  data: OpenRouterModel[];
+}
+
+export interface ModelsApiResponse {
+  importantModels: OpenRouterModel[];
+  allModels: OpenRouterModel[];
+  totalModels: number;
+}

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { getModelsByProvider } from "../../config/modelRegistry";
 import {
   AIProvider,
   CompletionOptions,
@@ -7,27 +6,58 @@ import {
   StreamChunk,
 } from "../../types";
 
-export class XAIProvider extends AIProvider {
-  name = "xai";
+export class OpenRouterProvider extends AIProvider {
+  name = "openrouter";
   private apiKey: string;
   private baseURL: string;
+  private supportedModels: string[] = [];
+  private modelsInitialized = false;
 
   constructor(config: ProviderConfig) {
     super();
-    this.apiKey = config.apiKey || process.env.XAI_API_KEY || "";
-    this.baseURL = config.baseURL || "https://api.x.ai";
+    this.apiKey = config.apiKey || process.env.OPEN_ROUTER_KEY || "";
+    this.baseURL = config.baseURL || "https://openrouter.ai/api/v1";
 
     if (!this.apiKey) {
-      throw new Error("xAI API key is required");
+      throw new Error("OpenRouter API key is required");
     }
   }
 
   getSupportedModels(): string[] {
-    return getModelsByProvider("xai").map((model) => model.name);
+    if (!this.modelsInitialized) {
+      console.warn("Models not initialized yet. Call initialize() first.");
+      return [];
+    }
+    return this.supportedModels;
   }
 
-  isModelSupported(model: string): boolean {
-    return this.getSupportedModels().includes(model);
+  async getSupportedModelsAsync(): Promise<string[]> {
+    if (!this.modelsInitialized) {
+      await this.fetchSupportedModels();
+    }
+    return this.supportedModels;
+  }
+
+  private async fetchSupportedModels(): Promise<void> {
+    try {
+      const response = await axios.get(`${this.baseURL}/models`, {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      });
+
+      this.supportedModels =
+        response.data.data?.map((model: any) => model.id) || [];
+      this.modelsInitialized = true;
+    } catch (error) {
+      console.error("Failed to fetch supported models from OpenRouter:", error);
+      this.supportedModels = [];
+      this.modelsInitialized = false;
+    }
+  }
+
+  async initialize(): Promise<void> {
+    await this.fetchSupportedModels();
   }
 
   async *createStreamingCompletion(
@@ -45,7 +75,7 @@ export class XAIProvider extends AIProvider {
     };
 
     const response = await axios.post(
-      `${this.baseURL}/v1/chat/completions`,
+      `${this.baseURL}/chat/completions`,
       body,
       {
         headers: {
@@ -98,7 +128,10 @@ export class XAIProvider extends AIProvider {
             }
           } catch (e) {
             // Skip invalid JSON
-            console.warn("Failed to parse xAI streaming chunk:", dataStr);
+            console.warn(
+              "Failed to parse OpenRouter streaming chunk:",
+              dataStr
+            );
           }
         }
       }

@@ -3,24 +3,28 @@ import { ChatController } from "../controllers/ChatController";
 import { requireAuth } from "../middleware/auth";
 
 const router = Router();
-const chatController = new ChatController();
 
-router.post(
-  "/stream",
-  requireAuth,
-  chatController.streamChat.bind(chatController)
-);
+let chatController: ChatController | null = null;
+const getChatController = () => {
+  if (!chatController) {
+    chatController = new ChatController();
+  }
+  return chatController;
+};
 
-router.get(
-  "/models",
-  requireAuth,
-  chatController.getModels.bind(chatController)
-);
+router.post("/stream", requireAuth, async (req, res) => {
+  const controller = getChatController();
+  return controller.streamChat(req as any, res);
+});
 
-router.get(
-  "/prompts",
-  requireAuth,
-  chatController.getSystemPrompts.bind(chatController)
-);
+router.get("/models", requireAuth, async (req, res) => {
+  const controller = getChatController();
+  return controller.getModels(req as any, res);
+});
+
+router.get("/prompts", requireAuth, async (req, res) => {
+  const controller = getChatController();
+  return controller.getSystemPrompts(req as any, res);
+});
 
 export default router;
