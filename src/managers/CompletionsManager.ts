@@ -131,49 +131,6 @@ export class CompletionsManager {
     return provider.createStreamingCompletion(completionOptions);
   }
 
-  public async createCompletion(
-    userMessage: string,
-    options: {
-      model?: string;
-      context?: ChatMessage[];
-      promptKey?: string;
-      maxTokens?: number;
-      temperature?: number;
-    } = {}
-  ): Promise<string> {
-    const {
-      model = DEFAULT_MODEL,
-      context = [],
-      promptKey,
-      maxTokens = 1000,
-      temperature = 0.7,
-    } = options;
-
-    const validatedModel = this.validateModel(model);
-    const systemPrompt = this.getSystemPrompt(promptKey);
-    const aiContext = context
-      ? this.convertChatMessagesToAIMessages(context)
-      : undefined;
-    const messages = this.buildMessageHistory(
-      userMessage,
-      validatedModel,
-      systemPrompt,
-      aiContext
-    );
-
-    const provider = this.providerRegistry.getProviderForModel(validatedModel);
-
-    const completionOptions: CompletionOptions = {
-      model: validatedModel,
-      messages,
-      maxTokens,
-      temperature,
-    };
-
-    const response = await provider.createCompletion(completionOptions);
-    return response.content;
-  }
-
   public getSupportedModels(): string[] {
     return this.providerRegistry.getAllAvailableModels();
   }

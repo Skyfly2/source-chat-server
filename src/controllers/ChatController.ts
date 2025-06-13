@@ -6,9 +6,7 @@ import { ThreadsManager } from "../managers/ThreadsManager";
 import {
   ApiResponse,
   AuthenticatedChatStreamHandler,
-  AuthenticatedRequest,
   ChatMessage,
-  ChatRequest,
   GetModelsHandler,
   GetPromptsHandler,
 } from "../types";
@@ -139,105 +137,6 @@ export class ChatController {
       } else {
         res.end();
       }
-    }
-  };
-
-  createCompletion = async (
-    req: AuthenticatedRequest & Request<{}, any, ChatRequest, {}>,
-    res: Response<any>
-  ): Promise<void> => {
-    try {
-      if (!validateChatRequest(req.body)) {
-        const errorResponse: ApiResponse<never> = createValidationError(
-          "Invalid request body. Message is required."
-        );
-        res.status(400).json(errorResponse);
-        return;
-      }
-
-      const { message, model, promptKey, context: providedContext } = req.body;
-      const { user } = req;
-      let { threadId } = req.body;
-
-      if (!model) {
-        const errorResponse: ApiResponse<never> =
-          createValidationError("Model is required.");
-        res.status(400).json(errorResponse);
-        return;
-      }
-
-      let thread;
-      if (threadId) {
-        thread = await this.threadsManager.getThread(threadId);
-        if (!thread) {
-          const errorResponse: ApiResponse<never> = {
-            success: false,
-            error: "Thread not found",
-          };
-          res.status(404).json(errorResponse);
-          return;
-        }
-      } else {
-        const threadTitle = this.threadsManager.generateThreadTitle(message);
-        thread = await this.threadsManager.createThread(threadTitle, user.id);
-
-        threadId = thread._id!.toString();
-      }
-
-      await this.threadsManager.addMessageToThread(threadId, "user", message);
-
-      // Use provided context from frontend instead of database call for better performance
-      let context: ChatMessage[];
-      if (providedContext && providedContext.length > 0) {
-        // Convert AIMessage[] from frontend to ChatMessage[] format expected by CompletionsManager
-        context = providedContext.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-          threadId: new ObjectId(threadId),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
-      } else {
-        // Fallback to database call if no context provided
-        context = await this.threadsManager.getThreadMessages(threadId);
-      }
-
-      const response = await this.completionsManager.createCompletion(message, {
-        model,
-        context,
-        promptKey,
-        maxTokens: 1000,
-        temperature: 0.7,
-      });
-
-      await this.threadsManager.addMessageToThread(
-        threadId,
-        "assistant",
-        response
-      );
-
-      const apiResponse: ApiResponse<any> = {
-        success: true,
-        data: {
-          content: response,
-          thread: {
-            id: threadId,
-            title: thread.title,
-            model,
-          },
-        },
-      };
-      res.json(apiResponse);
-    } catch (error) {
-      console.error("Completion error:", error);
-      const errorResponse: ApiResponse<never> = {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create completion",
-      };
-      res.status(500).json(errorResponse);
     }
   };
 

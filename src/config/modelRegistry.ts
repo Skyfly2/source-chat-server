@@ -770,7 +770,7 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   },
 } as const;
 
-export const DEFAULT_MODEL = "gpt-4o";
+export const DEFAULT_MODEL = "gpt-4.1-mini";
 
 export const getModelInfo = (modelName: string): ModelInfo | undefined => {
   return MODEL_REGISTRY[modelName];

@@ -10,16 +10,13 @@ router.post(
   requireAuth,
   chatController.streamChat.bind(chatController)
 );
-router.post(
-  "/completions",
-  requireAuth,
-  chatController.createCompletion.bind(chatController)
-);
+
 router.get(
   "/models",
   requireAuth,
   chatController.getModels.bind(chatController)
 );
+
 router.get(
   "/prompts",
   requireAuth,

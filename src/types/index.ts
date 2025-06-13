@@ -92,9 +92,6 @@ export interface CompletionResponse {
 export abstract class AIProvider {
   abstract name: string;
   abstract getSupportedModels(): string[];
-  abstract createCompletion(
-    options: CompletionOptions
-  ): Promise<CompletionResponse>;
   abstract createStreamingCompletion(
     options: CompletionOptions
   ): AsyncGenerator<StreamChunk>;

@@ -4,7 +4,6 @@ import {
   AIMessage,
   AIProvider,
   CompletionOptions,
-  CompletionResponse,
   ProviderConfig,
   StreamChunk,
 } from "../../types";
@@ -46,55 +45,6 @@ export class GoogleProvider extends AIProvider {
         content: message.content,
       };
     });
-  }
-
-  async createCompletion(
-    options: CompletionOptions
-  ): Promise<CompletionResponse> {
-    const messages = this.formatMessages(options.messages);
-
-    const body = {
-      contents: messages,
-      generationConfig: {
-        maxOutputTokens: options.maxTokens || 4096,
-        temperature: options.temperature || 0.7,
-      },
-    };
-
-    const response = await axios.post(
-      `${this.baseURL}/v1beta/models/${options.model}:generateContent?key=${this.apiKey}`,
-      body,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = response.data as {
-      candidates?: Array<{
-        content?: {
-          parts?: Array<{ text?: string }>;
-        };
-      }>;
-      usageMetadata?: {
-        promptTokenCount?: number;
-        candidatesTokenCount?: number;
-        totalTokenCount?: number;
-      };
-    };
-
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    return {
-      content,
-      model: options.model,
-      usage: {
-        promptTokens: data.usageMetadata?.promptTokenCount,
-        completionTokens: data.usageMetadata?.candidatesTokenCount,
-        totalTokens: data.usageMetadata?.totalTokenCount,
-      },
-    };
   }
 
   async *createStreamingCompletion(

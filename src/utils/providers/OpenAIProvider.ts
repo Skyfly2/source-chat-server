@@ -3,7 +3,6 @@ import { getModelsByProvider } from "../../config/modelRegistry";
 import {
   AIProvider,
   CompletionOptions,
-  CompletionResponse,
   ProviderConfig,
   StreamChunk,
 } from "../../types";
@@ -31,53 +30,6 @@ export class OpenAIProvider extends AIProvider {
 
   isModelSupported(model: string): boolean {
     return this.getSupportedModels().includes(model);
-  }
-
-  async createCompletion(
-    options: CompletionOptions
-  ): Promise<CompletionResponse> {
-    const isReasoning = this.isReasoningModel(options.model);
-    const requestParams: any = {
-      model: options.model,
-      messages: options.messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      stream: false,
-    };
-
-    // Reasoning models don't support custom temperature
-    if (!isReasoning && options.temperature !== undefined) {
-      requestParams.temperature = options.temperature;
-    }
-
-    // Use max_completion_tokens for reasoning models, max_tokens for others
-    if (isReasoning) {
-      if (options.maxTokens) {
-        requestParams.max_completion_tokens = options.maxTokens;
-      }
-    } else {
-      if (options.maxTokens) {
-        requestParams.max_tokens = options.maxTokens;
-      }
-    }
-
-    const response = await this.client.chat.completions.create(requestParams);
-
-    const choice = response.choices[0];
-    if (!choice?.message?.content) {
-      throw new Error("No content in OpenAI response");
-    }
-
-    return {
-      content: choice.message.content,
-      model: response.model,
-      usage: {
-        promptTokens: response.usage?.prompt_tokens,
-        completionTokens: response.usage?.completion_tokens,
-        totalTokens: response.usage?.total_tokens,
-      },
-    };
   }
 
   async *createStreamingCompletion(

@@ -4,7 +4,6 @@ import {
   AIMessage,
   AIProvider,
   CompletionOptions,
-  CompletionResponse,
   ProviderConfig,
   StreamChunk,
 } from "../../types";
@@ -44,48 +43,6 @@ export class AnthropicProvider extends AIProvider {
     return {
       system: systemMessage?.content,
       messages: conversationMessages,
-    };
-  }
-
-  async createCompletion(
-    options: CompletionOptions
-  ): Promise<CompletionResponse> {
-    const { system, messages } = this.formatMessages(options.messages);
-
-    const body = {
-      model: options.model,
-      max_tokens: options.maxTokens || 4096,
-      temperature: options.temperature || 0.7,
-      system,
-      messages,
-    };
-
-    const response = await axios.post(`${this.baseURL}/v1/messages`, body, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": this.apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-    });
-
-    const data = response.data as {
-      content?: Array<{ text?: string }>;
-      model: string;
-      usage?: {
-        input_tokens?: number;
-        output_tokens?: number;
-      };
-    };
-
-    return {
-      content: data.content?.[0]?.text || "",
-      model: data.model,
-      usage: {
-        promptTokens: data.usage?.input_tokens,
-        completionTokens: data.usage?.output_tokens,
-        totalTokens:
-          (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
-      },
     };
   }
 

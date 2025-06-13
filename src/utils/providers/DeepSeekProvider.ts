@@ -3,7 +3,6 @@ import { getModelsByProvider } from "../../config/modelRegistry";
 import {
   AIProvider,
   CompletionOptions,
-  CompletionResponse,
   ProviderConfig,
   StreamChunk,
 } from "../../types";
@@ -29,58 +28,6 @@ export class DeepSeekProvider extends AIProvider {
 
   isModelSupported(model: string): boolean {
     return this.getSupportedModels().includes(model);
-  }
-
-  async createCompletion(
-    options: CompletionOptions
-  ): Promise<CompletionResponse> {
-    const body = {
-      model: options.model,
-      messages: options.messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      max_tokens: options.maxTokens || 4096,
-      temperature: options.temperature || 0.7,
-      stream: false,
-    };
-
-    const response = await axios.post(
-      `${this.baseURL}/v1/chat/completions`,
-      body,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      }
-    );
-
-    const data = response.data as {
-      choices?: Array<{
-        message?: {
-          content?: string;
-        };
-      }>;
-      model: string;
-      usage?: {
-        prompt_tokens?: number;
-        completion_tokens?: number;
-        total_tokens?: number;
-      };
-    };
-
-    const content = data.choices?.[0]?.message?.content || "";
-
-    return {
-      content,
-      model: data.model,
-      usage: {
-        promptTokens: data.usage?.prompt_tokens,
-        completionTokens: data.usage?.completion_tokens,
-        totalTokens: data.usage?.total_tokens,
-      },
-    };
   }
 
   private isReasoningModel(model: string): boolean {
