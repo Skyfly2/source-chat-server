@@ -48,6 +48,7 @@ export interface ChatRequest {
   context?: AIMessage[];
   promptKey?: string;
   threadId?: string;
+  webSearch?: boolean;
 }
 
 export interface CompletionConfig {
@@ -71,6 +72,7 @@ export interface CompletionOptions {
   messages: AIMessage[];
   maxTokens?: number;
   temperature?: number;
+  webSearch?: boolean;
   stream?: boolean;
 }
 

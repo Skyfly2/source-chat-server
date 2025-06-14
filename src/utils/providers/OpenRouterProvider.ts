@@ -64,7 +64,7 @@ export class OpenRouterProvider extends AIProvider {
     options: CompletionOptions
   ): AsyncGenerator<StreamChunk> {
     const body = {
-      model: options.model,
+      model: options.webSearch ? `${options.model}:online` : options.model,
       messages: options.messages.map((msg) => ({
         role: msg.role,
         content: msg.content,

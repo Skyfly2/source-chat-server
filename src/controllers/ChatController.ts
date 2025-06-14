@@ -62,7 +62,14 @@ export class ChatController {
         return;
       }
 
-      const { message, model, promptKey, context: providedContext } = req.body;
+      const {
+        message,
+        model,
+        promptKey,
+        context: providedContext,
+        webSearch,
+      } = req.body;
+
       const { user } = req;
       let { threadId } = req.body;
 
@@ -124,6 +131,7 @@ export class ChatController {
           promptKey,
           maxTokens: 1000,
           temperature: 0.7,
+          webSearch,
         }
       );
 

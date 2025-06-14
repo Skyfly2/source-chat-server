@@ -87,6 +87,7 @@ export class CompletionsManager {
       promptKey?: string;
       maxTokens?: number;
       temperature?: number;
+      webSearch?: boolean;
     } = {}
   ): Promise<AsyncGenerator<StreamChunk>> {
     const {
@@ -120,6 +121,7 @@ export class CompletionsManager {
       maxTokens,
       temperature,
       stream: true,
+      webSearch: options.webSearch,
     };
 
     return provider.createStreamingCompletion(completionOptions);
